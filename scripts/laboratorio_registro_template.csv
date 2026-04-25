@@ -1,0 +1,11 @@
+n_agujero,timestamp,clase_svm_predicha,clase_svm_nombre,vb_medido_mm,duty_cycle_pct,notas
+1,2026-04-03T09:00:00,0,sin_desgaste,0.0,15,Inicio taladrado
+2,2026-04-03T09:02:00,0,sin_desgaste,0.05,18,Audio limpio
+3,2026-04-03T09:04:00,0,sin_desgaste,0.08,16,Flujo refrigerante estable
+4,2026-04-03T09:06:00,0,sin_desgaste,0.12,17,
+5,2026-04-03T09:08:00,0,sin_desgaste,0.15,19,
+6,2026-04-03T09:10:00,1,desgaste_leve,0.18,20,PAUSA: foto microscopio
+7,2026-04-03T09:15:00,1,desgaste_leve,0.22,21,
+8,2026-04-03T09:17:00,1,desgaste_leve,0.25,19,
+9,2026-04-03T09:19:00,1,desgaste_leve,0.28,22,
+10,2026-04-03T09:21:00,2,desgaste_severo,0.32,24,PAUSA: foto + mirilla calibrada

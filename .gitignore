@@ -1,0 +1,86 @@
+# --- Datos pesados (NO publicar) ---
+features/
+augmented/
+noise_profiles/
+previews/
+data/
+inputs/
+weights/
+models/
+results/
+art2_segments/
+article2/
+rag/
+relabels/
+notebooks/
+*.zip
+*.tdms
+*.tdms_index
+*.wav
+*.npy
+*.joblib
+*.pkl
+*.h5
+*.keras
+*.onnx
+
+# --- Compilacion LaTeX (excepto PDF final) ---
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.out
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.nav
+*.snm
+*.vrb
+*.idx
+*.ilg
+*.ind
+
+# --- Sistemas ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+*.swp
+
+# --- Editor / IDE ---
+.vscode/
+.idea/
+*.code-workspace
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# --- Secretos / credenciales ---
+*.secret
+.env
+.env.*
+informe_proyecto/drip_definitions/send_log.csv
+informe_proyecto/drip_definitions/.secret
+
+# --- Archivos grandes especificos ya conocidos ---
+results.zip
+informe_proyecto/figures/*.tdms
+article1/AVANZADA/
+
+# --- Subcarpetas de informe muy pesadas ---
+informe_proyecto/figures_old/
+informe_proyecto/annotation_images/

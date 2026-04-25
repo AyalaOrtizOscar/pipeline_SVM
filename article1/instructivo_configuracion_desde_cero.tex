@@ -1,0 +1,261 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{hyperref}
+
+\title{Instructivo Completo: Configurar LaTeX + VS Code Desde Cero\\
+para Trabajar y Compilar un Proyecto como \texttt{articulo\_rcta.tex}}
+\author{Gu\'ia pr\'actica paso a paso}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Objetivo de este instructivo}
+Este documento explica, de forma detallada y desde cero, c\'omo dejar operativo un computador reci\'en formateado para editar, compilar y depurar un proyecto LaTeX en VS Code, incluyendo problemas reales que aparecen con frecuencia:
+
+\begin{itemize}
+  \item errores de compilaci\'on en LaTeX Workshop,
+  \item conflictos de guardado en VS Code (\textit{file is newer}),
+  \item salidas de \texttt{latexmk} que dicen que todo est\'a al d\'ia pero muestran errores previos,
+  \item y diferencias de codificaci\'on de caracteres.
+\end{itemize}
+
+El objetivo final es que puedas modificar \texttt{.tex}, generar tu PDF sin fricci\'on y saber exactamente qu\'e hacer cuando falle algo.
+
+\section{Resultado final esperado}
+Al terminar, deber\'ias poder:
+
+\begin{itemize}
+  \item abrir una carpeta de proyecto en VS Code,
+  \item editar un archivo como \texttt{articulo\_rcta.tex},
+  \item compilar desde VS Code o terminal,
+  \item ver el PDF actualizado,
+  \item y resolver r\'apidamente errores comunes de build.
+\end{itemize}
+
+\section{Fase 0: Preparaci\'on inicial del computador}
+\subsection{1) Actualizar Windows}
+Antes de instalar herramientas de desarrollo:
+\begin{itemize}
+  \item Ejecuta Windows Update.
+  \item Reinicia si te lo pide.
+  \item Repite hasta que no queden actualizaciones pendientes importantes.
+\end{itemize}
+
+Esto evita problemas de certificados, rutas, componentes faltantes y comportamiento raro en instaladores.
+
+\subsection{2) Crear una carpeta de trabajo}
+Por ejemplo:
+\begin{verbatim}
+D:\pipeline_SVM\article1
+\end{verbatim}
+
+Evita rutas demasiado largas o con caracteres especiales no ASCII al principio del proyecto.
+
+\section{Fase 1: Instalar MiKTeX (motor LaTeX)}
+\subsection{1) Instalaci\'on}
+Instala MiKTeX para tu usuario. Si tienes opci\'on:
+\begin{itemize}
+  \item arquitectura: 64 bits,
+  \item instalaci\'on por usuario (\textit{Just for me}),
+  \item paquetes faltantes: instalar autom\'aticamente (\textit{Ask me first} o \textit{Yes}, seg\'un prefieras control o rapidez).
+\end{itemize}
+
+\subsection{2) Verificar binarios importantes}
+Confirma que existen estos ejecutables (ruta aproximada):
+\begin{verbatim}
+C:\Users\<TU_USUARIO>\AppData\Local\Programs\MiKTeX\miktex\bin\x64\
+  pdflatex.exe
+  latexmk.exe
+\end{verbatim}
+
+\subsection{3) Actualizar MiKTeX}
+Abre MiKTeX Console y ejecuta actualizaciones de paquetes y del sistema MiKTeX. Esto reduce much\'isimo errores de compilaci\'on por paquetes desactualizados.
+
+\section{Fase 2: Instalar VS Code y extensiones}
+\subsection{1) Instalar VS Code}
+Instala Visual Studio Code (instalaci\'on normal).
+
+\subsection{2) Instalar extensi\'on LaTeX Workshop}
+En VS Code:
+\begin{itemize}
+  \item abre Extensions,
+  \item busca \texttt{LaTeX Workshop},
+  \item instala la extensi\'on oficial.
+\end{itemize}
+
+\section{Fase 3: Configuraci\'on recomendada de VS Code}
+\subsection{1) Configuraci\'on base}
+En \texttt{settings.json} de usuario, una base razonable es:
+
+\begin{verbatim}
+{
+  "latex-workshop.latex.autoBuild.run": "onSave",
+  "latex-workshop.view.pdf.viewer": "tab",
+  "latex-workshop.message.error.show": true,
+  "latex-workshop.latex.clean.subfolder.enabled": true,
+  "files.autoSave": "off"
+}
+\end{verbatim}
+
+Notas:
+\begin{itemize}
+  \item \texttt{onSave} compila al guardar.
+  \item Si ves compilaciones en mal momento, puedes cambiar a \texttt{"never"} y compilar manualmente.
+  \item \texttt{files.autoSave: off} evita conflictos de guardado innecesarios cuando hay procesos externos tocando archivos.
+\end{itemize}
+
+\subsection{2) Validar codificaci\'on del archivo}
+Para evitar texto roto (\textit{mojibake}):
+\begin{itemize}
+  \item En la esquina inferior derecha de VS Code, confirma que el archivo est\'a en \texttt{UTF-8}.
+  \item Si no lo est\'a: \texttt{Reopen with Encoding} / \texttt{Save with Encoding} y elige \texttt{UTF-8}.
+\end{itemize}
+
+\section{Fase 4: Estructura de proyecto recomendada}
+Ejemplo:
+\begin{verbatim}
+article1/
+  articulo_rcta.tex
+  Plantilla_CIETA.pdf
+  (archivos auxiliares: .aux .log .out ...)
+\end{verbatim}
+
+Si usas fondo de plantilla, aseg\'urate de que \texttt{Plantilla\_CIETA.pdf} exista en la misma carpeta cuando el \texttt{.tex} lo referencia.
+
+\section{Fase 5: Flujo de trabajo diario (el m\'as estable)}
+\subsection{1) Abrir carpeta}
+Abre \texttt{D:\textbackslash pipeline\_SVM\textbackslash article1} como carpeta en VS Code.
+
+\subsection{2) Editar y guardar}
+Edita el \texttt{.tex} y guarda.
+
+\subsection{3) Compilar}
+Dos maneras:
+
+\textbf{A. Desde VS Code}
+\begin{itemize}
+  \item Comando: \texttt{LaTeX Workshop: Build LaTeX project}
+  \item Atajo usual: \texttt{Ctrl+Alt+B}
+\end{itemize}
+
+\textbf{B. Desde terminal PowerShell (ruta completa)}
+\begin{verbatim}
+& "C:\Users\<TU_USUARIO>\AppData\Local\Programs\MiKTeX\miktex\bin\x64\pdflatex.exe" `
+  -interaction=nonstopmode articulo_rcta.tex
+\end{verbatim}
+
+Para flujo con \texttt{latexmk}:
+\begin{verbatim}
+& "C:\Users\<TU_USUARIO>\AppData\Local\Programs\MiKTeX\miktex\bin\x64\latexmk.exe" `
+  -pdf -interaction=nonstopmode articulo_rcta.tex
+\end{verbatim}
+
+\subsection{4) Ver PDF}
+Abre \texttt{articulo\_rcta.pdf} desde el visor de VS Code o desde el explorador.
+
+\section{Fase 6: Soluci\'on de errores frecuentes (muy importante)}
+\subsection{Caso A: ``Recipe terminated with error''}
+Pasos:
+\begin{enumerate}
+  \item Abre el \texttt{compiler log}.
+  \item Busca la primera l\'inea con \texttt{!} (ese suele ser el error real).
+  \item Corrige el \texttt{.tex}.
+  \item Limpia auxiliares y recompila.
+\end{enumerate}
+
+\subsection{Caso B: ``Failed to save ... file is newer''}
+Esto pasa cuando el archivo en disco cambi\'o y tu pesta\~na tiene una versi\'on anterior.
+\begin{enumerate}
+  \item Pulsa \texttt{Compare}.
+  \item Fusiona o conserva la versi\'on correcta.
+  \item Guarda de nuevo.
+  \item Recompila.
+\end{enumerate}
+
+Consejo: evita editar el mismo archivo simult\'aneamente con varios programas.
+
+\subsection{Caso C: \texttt{latexmk} dice ``up-to-date'' pero muestra error previo}
+Ese estado es com\'un. Soluci\'on robusta:
+\begin{verbatim}
+& "C:\Users\<TU_USUARIO>\AppData\Local\Programs\MiKTeX\miktex\bin\x64\latexmk.exe" `
+  -C articulo_rcta.tex
+
+& "C:\Users\<TU_USUARIO>\AppData\Local\Programs\MiKTeX\miktex\bin\x64\latexmk.exe" `
+  -pdf -interaction=nonstopmode -g articulo_rcta.tex
+\end{verbatim}
+
+\subsection{Caso D: Mensajes de code page en consola}
+L\'ineas como:
+\begin{verbatim}
+Initial Win CP ...
+I changed them all to CP1252
+\end{verbatim}
+normalmente son informativas, no son el error en s\'i.
+
+\subsection{Caso E: Error por porcentajes con espa\~nol}
+En algunos entornos con \texttt{babel-spanish}, el patr\'on:
+\begin{verbatim}
+\,\%
+\end{verbatim}
+puede disparar errores del tipo \texttt{Incompatible glue units}. Soluci\'on pr\'actica:
+\begin{itemize}
+  \item usar simplemente \texttt{\textbackslash\%} en el texto normal,
+  \item y evitar combinaciones extra\~nas de espacio fino antes del porcentaje.
+\end{itemize}
+
+\section{Fase 7: Comandos de recuperaci\'on r\'apida}
+Cuando ``todo est\'a raro'', ejecuta este bloque:
+
+\begin{verbatim}
+& "C:\Users\<TU_USUARIO>\AppData\Local\Programs\MiKTeX\miktex\bin\x64\latexmk.exe" `
+  -C articulo_rcta.tex
+
+& "C:\Users\<TU_USUARIO>\AppData\Local\Programs\MiKTeX\miktex\bin\x64\latexmk.exe" `
+  -pdf -interaction=nonstopmode -g articulo_rcta.tex
+\end{verbatim}
+
+Si no usas \texttt{latexmk}, compila dos veces con \texttt{pdflatex}:
+\begin{verbatim}
+& "C:\Users\<TU_USUARIO>\AppData\Local\Programs\MiKTeX\miktex\bin\x64\pdflatex.exe" `
+  -interaction=nonstopmode articulo_rcta.tex
+
+& "C:\Users\<TU_USUARIO>\AppData\Local\Programs\MiKTeX\miktex\bin\x64\pdflatex.exe" `
+  -interaction=nonstopmode articulo_rcta.tex
+\end{verbatim}
+
+\section{Fase 8: Buenas pr\'acticas para no volver al caos}
+\begin{itemize}
+  \item Usa control de versiones (Git) desde el d\'ia 1.
+  \item Haz commits peque\~nos despu\'es de cambios que compilan.
+  \item Mant\'en encoding UTF-8 siempre.
+  \item Evita ``copiar y pegar'' texto desde fuentes que cambian codificaci\'on.
+  \item Limpia auxiliares cuando cambies estructura grande de secciones/referencias.
+  \item Si VS Code muestra conflicto de guardado, primero compara y luego guarda.
+\end{itemize}
+
+\section{Checklist final (10 minutos)}
+\begin{enumerate}
+  \item MiKTeX instalado y actualizado.
+  \item VS Code + LaTeX Workshop instalados.
+  \item Archivo en UTF-8.
+  \item Build ejecuta sin errores fatales.
+  \item PDF se genera y abre.
+  \item Ya sabes correr limpieza + rebuild forzado.
+\end{enumerate}
+
+\section{Cierre}
+Si sigues este instructivo, vas a poder reproducir un entorno estable desde un equipo reci\'en formateado y trabajar de forma predecible. La clave no es ``que nunca falle'', sino tener un procedimiento claro para recuperar el estado de compilaci\'on en menos de cinco minutos.
+
+\vspace{1em}
+\noindent
+Sugerencia final: guarda este instructivo dentro del proyecto y actual\'izalo cada vez que descubras un nuevo error recurrente. Convertir problemas reales en pasos repetibles es lo que vuelve robusto tu flujo de trabajo.
+
+\end{document}
+

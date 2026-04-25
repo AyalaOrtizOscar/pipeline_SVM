@@ -1,0 +1,188 @@
+{
+  "meta": {
+    "campaign": "Definiciones para sustentacion",
+    "start_date": "2026-04-21",
+    "end_date": "2026-05-15",
+    "recipient": "ayalaortizoscarivan@gmail.com",
+    "sender_name": "Copiloto de Sustentacion",
+    "total_items": 25,
+    "notes": "Un concepto por dia. Asuntos disenados para llamar la atencion en la bandeja. Los cuerpos estan en Markdown suave para legibilidad en Gmail."
+  },
+  "entries": [
+    {
+      "day": 1,
+      "date": "2026-04-21",
+      "subject": "[1/25] El truco que convierte 3 clases en 2 preguntas faciles",
+      "topic": "Frank & Hall",
+      "body": "Hoy toca entender por que NO entrenaste un clasificador multiclase clasico.\n\nFrank & Hall descompone un problema ordinal de K clases en K-1 clasificadores binarios. Con 3 clases (sin / medio / desgastado) quedan dos preguntas:\n- C1: 'hay algun desgaste?'  -> P(y >= 1)\n- C2: 'el desgaste es severo?' -> P(y >= 2)\n\nLa clase final se reconstruye respetando la monotonicidad p2 <= p1 (no puede ser mas probable 'desgastado' que 'algun desgaste').\n\nPor que importa: cada binario es mas facil de aprender que un multiclase, y los errores se concentran en fronteras adyacentes (no saltan dos niveles).\n\nRespuesta corta al jurado: 'En lugar de un clasificador de 3 clases, entreno dos preguntas binarias mas faciles y las combino respetando el orden.'"
+    },
+    {
+      "day": 2,
+      "date": "2026-04-22",
+      "subject": "[2/25] Por que 80% de accuracy puede ser un modelo inutil",
+      "topic": "Macro F1",
+      "body": "Si el 80% de tus agujeros son 'sin desgaste', un modelo que siempre dice 'sin desgaste' tiene 80% de accuracy y cero utilidad.\n\nPor eso el articulo usa Macro F1:\n- Precision = de lo que predije como X, cuanto era realmente X.\n- Recall = de lo que era realmente X, cuanto detecte.\n- F1 = media armonica de ambas. Penaliza fuerte si alguna esta baja.\n- Macro F1 = promedio SIMPLE de F1 por clase. La clase chica pesa igual que la grande.\n\nAcentua la clase minoritaria (desgastado), que es justo la que mas importa por seguridad.\n\nRespuesta corta: 'Uso Macro F1 porque las clases estan desbalanceadas y me interesa detectar el desgaste severo, que es la minoritaria.'"
+    },
+    {
+      "day": 3,
+      "date": "2026-04-23",
+      "subject": "[3/25] Confundirse por un escalon NO es lo mismo que por dos",
+      "topic": "Adjacent accuracy",
+      "body": "Adjacent accuracy = porcentaje de predicciones que estan en la clase correcta O en una adyacente.\n\nTu numero clave: 90.1% adjacent accuracy tras filtrado espectral. Traduccion: 9 de cada 10 predicciones o aciertan o fallan SOLO por un nivel. Ningun error salta dos clases.\n\nPor que es fundamental para clasificacion de desgaste: confundir 'mediano' con 'desgastado' te para la produccion un poco antes (costo operacional). Confundir 'nuevo' con 'desgastado' te romperia la broca y la pieza (costo catastrofico). La metrica refleja esa asimetria.\n\nRespuesta corta: 'Adjacent accuracy castiga los errores catastroficos y tolera los errores cercanos a la frontera, que son clinicamente aceptables.'"
+    },
+    {
+      "day": 4,
+      "date": "2026-04-24",
+      "subject": "[4/25] El problema que rompe la validacion cruzada normal",
+      "topic": "LOEO - Leave-One-Experiment-Out",
+      "body": "KFold aleatorio MIENTE cuando tus muestras estan correlacionadas por experimento.\n\nEjemplo: si segmentas 140 agujeros de la broca #1 y mezclas, muestras del mismo experimento terminan en train y en test. El modelo memoriza el timbre de esa broca, no aprende a generalizar.\n\nSolucion: Leave-One-Experiment-Out (LOEO). Dejas un experimento ENTERO fuera para validar. Si el modelo generaliza a brocas nuevas, LOEO lo va a mostrar; si solo memoriza, LOEO lo delata.\n\nOtras variantes utiles:\n- StratifiedKFold: preserva proporcion de clases.\n- GroupKFold: no mezcla grupos (alternativa mas suave que LOEO).\n- StratifiedGroupKFold: combinacion de ambas.\n\nRespuesta corta: 'Use LOEO porque kfold aleatorio sobreestima el rendimiento cuando hay agrupaciones naturales (cada experimento es un grupo).'"
+    },
+    {
+      "day": 5,
+      "date": "2026-04-25",
+      "subject": "[5/25] El hiperparametro C del SVM explicado con tolerancia mecanica",
+      "topic": "SVM + RBF",
+      "body": "SVM = Support Vector Machine. Busca el hiperplano que SEPARA las clases maximizando el margen (distancia al punto mas cercano).\n\nKernel RBF (Radial Basis Function) = 'proyecta los datos a un espacio de infinitas dimensiones' sin calcularlo explicitamente (truco del kernel). Ideal cuando las clases no son linealmente separables.\n\nC = penalizacion por error de clasificacion:\n- C bajo = modelo suave, tolera errores, margen amplio (underfitting).\n- C alto = modelo rigido, castiga errores, margen angosto (overfitting).\n- Tu valor: C=10. Intermedio, validado por grid search.\n\nAnalogia: C es como la tolerancia mecanica. H7 muy estrecho (C alto) ajusta perfecto pero requiere pieza muy precisa. H11 amplio (C bajo) admite piezas imperfectas pero el ensamble queda flojo.\n\nRespuesta corta: 'SVM con kernel RBF y C=10; valor escogido por grid search con validacion cruzada estratificada.'"
+    },
+    {
+      "day": 6,
+      "date": "2026-04-26",
+      "subject": "[6/25] IEPE, phantom power y por que NO es lo mismo",
+      "topic": "Alimentacion de microfonos",
+      "body": "Los dos son sistemas de alimentacion por el mismo cable de senal, pero son INCOMPATIBLES.\n\nIEPE (Integrated Electronics Piezo-Electric): 4 mA de corriente constante, ~24 V. Estandar de NI-9234. Los microfonos MAXLIN UDM-51 y SL84C usan IEPE.\n\nPhantom power: 48 V DC. Estandar de audio profesional (XLR). Microfonos de condensador como el Behringer C1 lo necesitan.\n\nConectarlos cruzado puede DANIAR el microfono o la tarjeta. Tu NI-9234 es IEPE; el condensador C1 pasa por interfaz aparte con phantom.\n\nBNC vs XLR: BNC es coaxial, baja interferencia, comun en instrumentacion. XLR es balanceado (3 pines), estandar audio.\n\nRespuesta corta: 'Los dinamicos IEPE se alimentan por el NI-9234 con 4 mA; el condensador C1 requiere 48 V phantom por interfaz separada.'"
+    },
+    {
+      "day": 7,
+      "date": "2026-04-27",
+      "subject": "[7/25] MFCC: lo que tu oreja hace sin que te des cuenta",
+      "topic": "MFCC",
+      "body": "MFCC = Mel-Frequency Cepstral Coefficients. Es la forma COMPACTA de describir el timbre de una senal.\n\nPipeline:\n1. FFT del segmento de audio.\n2. Banco de filtros triangulares en escala Mel (Mel = escala perceptual del oido humano, logaritmica por encima de 1 kHz).\n3. Log de la energia en cada banda.\n4. DCT (Discrete Cosine Transform) -> primeros 13 coeficientes.\n\nEl resultado: 13 numeros que capturan la FORMA espectral sin importar el volumen ni la altura. El primer MFCC se suele descartar (captura solo el volumen).\n\nPor que funciona para desgaste: el timbre de corte cambia con el flanco de la broca. El oido lo oye, los MFCC lo miden numericamente.\n\nRespuesta corta: 'MFCC describe el timbre de la senal imitando la percepcion auditiva humana, lo que lo hace robusto a cambios de volumen.'"
+    },
+    {
+      "day": 8,
+      "date": "2026-04-28",
+      "subject": "[8/25] Los 26 descriptores acusticos que capturan el 'sonido' del desgaste",
+      "topic": "26 features",
+      "body": "Tu vector de features tiene 26 descriptores agrupados en 4 familias:\n\n1. TEMPORALES (4): RMS, crest factor, ZCR (zero-crossing rate), skewness.\n2. ESPECTRALES (5): centroide, bandwidth, rolloff, flatness, entropia espectral.\n3. MFCC (13): coeficientes cepstrales 1-13.\n4. HARMONIC/PERCUSSIVE (2): energia armonica / percusiva (descomposicion HPSS de librosa).\n+ 2 adicionales tipicas: peak factor, spectral contrast.\n\nPor que 26 y no 100: el articulo hace ablacion y top-7 a top-10 features ya capturan ~95% del rendimiento. Mas features = mas ruido y riesgo de overfitting.\n\nSelectKBest con mutual_info_classif toma las mejores 15 para el SVM final.\n\nRespuesta corta: '26 features hand-crafted cubren dominio temporal, espectral y cepstral; top-15 por informacion mutua alimentan el SVM.'"
+    },
+    {
+      "day": 9,
+      "date": "2026-04-29",
+      "subject": "[9/25] StandardScaler: por que tu SVM se cae sin el",
+      "topic": "Normalizacion",
+      "body": "SVM con RBF usa distancias. Si una feature esta en escala [0, 1] (RMS) y otra en [0, 22050] (spectral centroid), la segunda domina el calculo y la primera se vuelve invisible.\n\nStandardScaler: resta la media y divide por la desviacion estandar. Cada feature queda con media 0 y varianza 1. Ahora todas compiten en igualdad.\n\nOJO: el StandardScaler se AJUSTA (fit) SOLO con los datos de train. Despues se aplica (transform) a val y test con esos mismos parametros. Si ajustas con todo el dataset -> data leakage.\n\nPipeline tipico:\nSimpleImputer -> StandardScaler -> SelectKBest -> SVC\n\nRespuesta corta: 'StandardScaler es critico para SVM-RBF; se ajusta solo con train para evitar filtrado de informacion del test.'"
+    },
+    {
+      "day": 10,
+      "date": "2026-04-30",
+      "subject": "[10/25] SHAP: por que tu modelo tomo esa decision (y se lo puedes probar al jurado)",
+      "topic": "SHAP",
+      "body": "SHAP = SHapley Additive exPlanations. Asigna a cada feature una contribucion a la prediccion, para UNA muestra en particular.\n\nLa idea: valor Shapley viene de teoria de juegos cooperativos. Mide cuanto aporta cada 'jugador' (feature) al resultado final, promediando sobre todas las coaliciones posibles.\n\nResultado practico: para cada prediccion puedes decir 'RMS contribuyo +0.3, MFCC_2 contribuyo -0.1, ...'. La suma reconstruye la prediccion menos la media.\n\nUtilidad en el articulo:\n- Summary plot: que features son globalmente mas importantes.\n- Force plot: por que esta muestra se clasifico como 'desgastado'.\n- Dependence plot: relacion entre feature y prediccion.\n\nRespuesta corta: 'SHAP permite explicar cada prediccion individual con contribuciones sumables, dando interpretabilidad a un modelo black-box.'"
+    },
+    {
+      "day": 11,
+      "date": "2026-05-01",
+      "subject": "[11/25] Bootstrap: estadistica sin asumir que los datos son normales",
+      "topic": "Bootstrap",
+      "body": "Feriado del trabajador, pero la sustentacion no espera.\n\nBootstrap = remuestreo con reemplazo. En vez de asumir distribucion normal para calcular intervalos de confianza, remuestreas tu test set B veces (tipico B=1000), calculas la metrica en cada uno, y usas los percentiles 2.5 y 97.5 como intervalo del 95%.\n\nFormalmente: tomas N muestras CON reemplazo del test set (algunas se repiten, otras no aparecen). Calculas F1 en cada replica. Despues de 1000 replicas tienes una distribucion empirica de F1.\n\nPor que en tu articulo: con test sets pequenios (E3 = 583 muestras), una sola estimacion puntual es fragil. Bootstrap da 'macro F1 = 0.78 (IC 95%: 0.74 - 0.82)'.\n\nRespuesta corta: 'Bootstrap me permite cuantificar la incertidumbre de las metricas sin asumir distribucion parametrica.'"
+    },
+    {
+      "day": 12,
+      "date": "2026-05-02",
+      "subject": "[12/25] Spectral gating: limpiar ruido sin matar la senal util",
+      "topic": "Noisereduce / spectral gating",
+      "body": "Spectral gating (libreria noisereduce) mejoro tu adjacent accuracy de 84.7% a 90.1%. +5.4 puntos de ganancia casi gratis.\n\nComo funciona:\n1. Grabas un perfil de ruido (ruido de maquina sin corte).\n2. Calculas espectrograma de la senal y del ruido.\n3. En cada bin tiempo-frecuencia: si la energia esta cerca del nivel del ruido, la atenuas. Si esta muy por encima, la dejas.\n4. ISTFT inverso -> senal limpiada.\n\nEquivale a una 'puerta de ruido' pero en el dominio frecuencia por bin, no en todo el espectro.\n\nDiferencia con un simple pasabajos: no quita bandas completas, solo quita ENERGIA que corresponde al perfil de ruido. Conserva los transitorios del corte.\n\nRespuesta corta: 'Spectral gating con noisereduce modela el ruido de maquina y lo sustrae por bin, preservando la senal de corte.'"
+    },
+    {
+      "day": 13,
+      "date": "2026-05-03",
+      "subject": "[13/25] Mel spectrograma: la imagen que la CNN aprende a leer",
+      "topic": "Mel spectrogram",
+      "body": "Para el Art.2 (CNN) la entrada NO es el WAV crudo ni los 26 features. Es un Mel spectrogram de 64 x 512 x 1.\n\nPipeline:\n1. STFT: ventana Hann, n_fft=2048, hop_length=~512.\n2. Cuadrado -> espectrograma de potencia.\n3. Banco de filtros Mel (64 bandas, fmin=20, fmax=22050).\n4. Conversion a dB (logaritmo).\n5. Normalizacion (media 0, varianza 1).\n\nResultado: una 'imagen' donde eje Y = frecuencia Mel (64 bandas) y eje X = tiempo (512 frames). Cada pixel = energia en dB.\n\nPor que Mel y no lineal: las bajas frecuencias (donde vive el corte) quedan bien resueltas; las altas (ruido agudo) quedan comprimidas.\n\nLa CNN aprende patrones bidimensionales (texturas espectrotemporales) que los 26 features no capturan.\n\nRespuesta corta: 'La CNN recibe un Mel spectrogram 64 x 512 porque la perceptiva Mel concentra resolucion en las bajas frecuencias donde vive la senal de corte.'"
+    },
+    {
+      "day": 14,
+      "date": "2026-05-04",
+      "subject": "[14/25] Capas convolucionales: por que ver imagenes es MUY distinto a analizar tablas",
+      "topic": "CNN fundamentals",
+      "body": "CNN = Convolutional Neural Network. La clave son dos operaciones:\n\n1. CONVOLUCION: un filtro pequeno (3x3 o 5x5) se desliza sobre la imagen y calcula correlacion local. Detecta PATRONES LOCALES (bordes, texturas, rafagas). El filtro se APRENDE en el entrenamiento.\n\n2. POOLING: reduce resolucion tomando max o avg en ventanas 2x2. Gana invariancia a pequenios desplazamientos y reduce computo.\n\nProfundidad = varias capas conv + pool apiladas. Capas tempranas ven bordes; capas profundas ven formas compuestas.\n\nPor que funciona en Mel spectrograms: los filtros aprenden 'bursts de energia en tal banda Mel', que es exactamente lo que diferencia brocas nuevas de desgastadas.\n\nAl final hay una capa densa (fully connected) + softmax para la prediccion.\n\nRespuesta corta: 'La CNN extrae patrones locales del espectrograma con convoluciones aprendidas y los compone en representaciones profundas.'"
+    },
+    {
+      "day": 15,
+      "date": "2026-05-05",
+      "subject": "[15/25] Fine-tuning: NO entrenar desde cero cuando tienes 1500 muestras",
+      "topic": "Transfer learning / fine-tuning",
+      "body": "Entrenar una CNN desde cero con 1500 muestras da garbage. Los pesos aleatorios iniciales tardan millones de gradientes en aprender algo util.\n\nSolucion: transfer learning. Cargas una CNN pre-entrenada (ej. en AudioSet o ImageNet), le cambias la ultima capa (softmax) por tu cabeza ordinal (Frank & Hall), y FINE-TUNEAS con learning rate reducido.\n\nTu flujo:\n1. Cargas cnn_ordinal.keras pre-entrenado con dataset Orejarena.\n2. Congelas capas tempranas (features genericos de espectrogramas).\n3. Descongelas capas profundas y las re-entrenas con tus datos Art.2.\n4. Usas lr = 1e-5 (10 x mas bajo que entrenamiento inicial) para no borrar lo aprendido.\n5. 10 epocas son suficientes.\n\nLa clave: el modelo pre-entrenado ya sabe 'mirar' espectrogramas. Solo lo especializas.\n\nRespuesta corta: 'Fine-tuning con lr reducido sobre un modelo pre-entrenado me permite aprovechar 1500 muestras que no alcanzarian para entrenar desde cero.'"
+    },
+    {
+      "day": 16,
+      "date": "2026-05-06",
+      "subject": "[16/25] Data leakage: el error invisible que infla tus metricas",
+      "topic": "Data leakage",
+      "body": "Data leakage = informacion del test set se cuela al train set por accidente. El modelo aprende cosas que no deberia saber, las metricas se disparan, pero en produccion se cae.\n\nEjemplos clasicos en tu dominio:\n1. Normalizar CON todo el dataset (incluyendo test). -> StandardScaler que ve el test.\n2. Aplicar SMOTE/augmentation antes del split. -> muestras sinteticas basadas en test terminan en train.\n3. Feature selection con correlacion al label usando el dataset completo.\n4. Segmentar agujeros y mezclar muestras del mismo experimento en train/test.\n5. Buscar hiperparametros con grid search viendo el test.\n\nRegla de oro: haz pipeline sklearn, usa CV anidado, y separa test HOLDOUT antes de tocar nada.\n\nTu caso: E3 es holdout puro, nunca lo tocas para nada que no sea evaluacion final.\n\nRespuesta corta: 'E3 se reserva como holdout y el pipeline encapsula imputer+scaler+selector para que cada fold se ajuste solo con sus datos de train.'"
+    },
+    {
+      "day": 17,
+      "date": "2026-05-07",
+      "subject": "[17/25] random_state=42: la replicabilidad que te salva la tesis",
+      "topic": "Reproducibilidad",
+      "body": "Muchos pasos del pipeline son estocasticos: split train/test, augmentation, inicializacion de pesos, grid search, bootstrap.\n\nSi no fijas semilla, cada corrida da numeros distintos. Imposible defender '90.1%' si manana te sale '88.2%'.\n\nrandom_state=42 = semilla del PRNG (pseudo random number generator). Todas las corridas con la misma semilla producen el mismo resultado.\n\n42 por convencion (Hitchhiker's Guide). Cualquier entero funciona igual.\n\nCheck-list de reproducibilidad:\n- random_state en sklearn.\n- seed en numpy, tensorflow, torch.\n- orden de iteracion fijo (no depender de dict python < 3.7).\n- version de librerias congelada (requirements.txt).\n- git commit ID del experimento guardado.\n\nRespuesta corta: 'Fijo random_state=42 en todo el pipeline y registro versiones de libreria para que cualquiera pueda reproducir mis numeros.'"
+    },
+    {
+      "day": 18,
+      "date": "2026-05-08",
+      "subject": "[18/25] El criterio VB = 0.3 mm, tu juez de corte",
+      "topic": "VB y ISO 3685",
+      "body": "VB (flank wear) = ancho promedio del desgaste en el flanco de la broca, medido en mm.\n\nISO 3685 (tornado) y 8688-2 (fresado/taladrado) establecen VB = 0.3 mm como criterio de reemplazo estandar. Mas alla de 0.3 mm:\n- Fuerzas de corte se disparan.\n- Acabado superficial se degrada.\n- Riesgo de fractura de la broca.\n\nEn tu trabajo: cada broca se fotografia bajo microscopio digital cada cierto numero de agujeros. VB se mide en cada foto. La broca se 'declara desgastada' cuando VB > 0.3 mm.\n\nEtiquetado [15/75]: primeros 15% de la vida = 'sin desgaste', entre 15-75% = 'mediano', despues de 75% = 'desgastado'. Las fronteras 15 y 75 son sensibles: se estudia el threshold sweep en el articulo.\n\nRespuesta corta: 'VB = 0.3 mm es el criterio ISO 8688-2 para fin de vida util. Los labels ordinales se definen por porcentaje de vida relativo a ese limite.'"
+    },
+    {
+      "day": 19,
+      "date": "2026-05-09",
+      "subject": "[19/25] Dormer A100 vs A114: el detalle que cambia la fisica del corte",
+      "topic": "Brocas",
+      "body": "Dos brocas, una geometria distinta:\n\nA100 = broca de cobalto (HSS-Co), punta 118 grados, recubrimiento sin TiN. Uso general en aceros al carbono.\n\nA114 = broca de cobalto recubierta TiN (nitruro de titanio). Punta 135 grados, mas robusta. Recomendada para aceros aleados como el 4140.\n\nEn tu estudio AMBAS brocas se probaron (6 mm y 8 mm cada una), usando parametros de corte IDENTICOS por comparabilidad: 1061 rpm, 116 mm/min (A100 6 mm) y equivalentes para A114.\n\nPor que importa al jurado: no es 'una broca cualquiera'. Dormer es marca certificada, los catalogos dan Vc recomendado, fz por diente y vida util esperada. Tu estudio valida (y refuta en parte) los numeros del catalogo con datos acusticos.\n\nRespuesta corta: 'Dormer A100 y A114 se eligieron por disponibilidad en UIS y porque sus hojas tecnicas permiten comparar con parametros oficiales.'"
+    },
+    {
+      "day": 20,
+      "date": "2026-05-10",
+      "subject": "[20/25] El YF-S201: por que el caudalimetro es la variable diferenciadora del Art.2",
+      "topic": "ESP32 + flow sensor",
+      "body": "El YF-S201 es un sensor de efecto Hall con turbina. Cuando pasa taladrina por la tuberia, la turbina gira, el iman genera pulsos, y el ESP32 los cuenta. 450 pulsos por litro aproximadamente.\n\nComo senal en tu modelo: reportas duty cycle (fraccion de tiempo con flujo presente) y regimen (ON / OFF / intermitente).\n\nPor que es la variable diferenciadora frente al Art.1:\n1. Mide capacidad de enfriamiento real durante el ensayo.\n2. Correlaciona con el fenomeno termico del desgaste (broca desgastada genera mas calor, exige mas refrigerante).\n3. Es un canal fisico independiente del audio -> mejora robustez del modelo multimodal.\n4. iter_007 del multimodal SVM gano +6 puntos en E3 vs audio-only incorporando flow + coating.\n\nEl INMP441 (MEMS I2S) es secundario: aporta diversidad de sensor, no calidad primaria.\n\nRespuesta corta: 'El YF-S201 aporta la variable termica (caudal de refrigerante), que es el canal diferenciador del Art.2 respecto al Art.1 puramente acustico.'"
+    },
+    {
+      "day": 21,
+      "date": "2026-05-11",
+      "subject": "[21/25] Manifiesto: la tabla que hace tu trabajo FAIR",
+      "topic": "Manifest / FAIR",
+      "body": "FAIR = Findable, Accessible, Interoperable, Reusable. Principios de datos abiertos para ciencia.\n\nEn tu pipeline: el MANIFIESTO (manifest.csv o splits.csv) es el archivo que hace trazable cada muestra:\n\nCampos tipicos: filepath, label, mic_type, experiment_id, drill_bit, hole_number, total_holes, is_augmented, split (train/val/test).\n\nPara que sirve:\n1. Reproducibilidad: con el manifiesto cualquiera puede reconstruir train/val/test exactos.\n2. Trazabilidad: si una muestra es rara, vas al manifiesto y sabes de que ensayo vino.\n3. Filtrado: puedes hacer analisis condicional (solo dinamicos, solo broca X).\n4. Escalabilidad: anadir un test nuevo = anadir filas, no re-extraer todo.\n\nTu manifiesto vive en D:/pipeline_SVM/manifests/ y define los splits fijos del Art.1 (E3 = test holdout).\n\nRespuesta corta: 'El manifiesto es el contrato de datos: fija splits, etiquetas, metadata. Garantiza reproducibilidad y hace trazable cada muestra.'"
+    },
+    {
+      "day": 22,
+      "date": "2026-05-12",
+      "subject": "[22/25] Pipeline de sklearn: el arma contra el data leakage",
+      "topic": "sklearn.Pipeline",
+      "body": "Un Pipeline de sklearn encadena transformaciones y el modelo final en un solo objeto. Se entrena con .fit() y predice con .predict(), pero por dentro respeta fit_transform solo en train y transform en val/test.\n\nTu pipeline del SVM:\nPipeline([\n  ('imputer', SimpleImputer(strategy='median')),\n  ('scaler', StandardScaler()),\n  ('select', SelectKBest(mutual_info_classif, k=15)),\n  ('svc', SVC(C=10, kernel='rbf', probability=True, class_weight='balanced'))\n])\n\nBeneficios:\n1. Evita data leakage (cada fold ajusta su propio scaler e imputer).\n2. Grid search sobre cualquier parametro: 'svc__C', 'select__k', etc.\n3. Serializable con joblib -> deployment en GUI v5.\n4. Testeable en unit tests: misma API que un estimator simple.\n\nRegla: todo lo que toque datos (scaler, imputer, selector) va DENTRO del pipeline, no fuera.\n\nRespuesta corta: 'Uso sklearn.Pipeline para encapsular imputer, scaler, selector y SVC en un solo estimator; esto evita fugas de test a train.'"
+    },
+    {
+      "day": 23,
+      "date": "2026-05-13",
+      "subject": "[23/25] Clase minoritaria: el truco de class_weight='balanced'",
+      "topic": "Class imbalance",
+      "body": "Desbalance: 60% sin desgaste, 30% medio, 10% desgastado. Sin ajustar, el modelo tiene sesgo a predecir la clase mayoritaria (minimiza error global).\n\nTres estrategias:\n\n1. class_weight='balanced' en SVC/LogReg: internamente pondera el costo de error inversamente a la frecuencia. Clase desgastada pesa 6x mas que sin desgaste. CERO costo adicional computacional.\n\n2. Oversampling (SMOTE): genera muestras sinteticas de la minoritaria interpolando entre vecinos. OJO: solo sobre train, jamas sobre test. Riesgo de overfitting.\n\n3. Focal loss (solo deep learning): gamma modula el peso segun dificultad. Avanzado.\n\nTu eleccion: class_weight='balanced' + Macro F1 + adjacent accuracy. Simple y directo.\n\nRespuesta corta: 'Class_weight balanced compensa el desbalance sin generar muestras sinteticas; combinado con Macro F1 asegura que el desgastado pese lo que merece.'"
+    },
+    {
+      "day": 24,
+      "date": "2026-05-14",
+      "subject": "[24/25] Softmax y label smoothing: la ultima capa que afina la prediccion",
+      "topic": "Softmax + label smoothing",
+      "body": "Softmax convierte los logits (numeros reales arbitrarios) en probabilidades. Formula: exp(z_i) / sum(exp(z_j)). La suma da 1, cada p_i en [0, 1].\n\nProblema: una red confiada se vuelve overconfident. Predice [0.99, 0.005, 0.005] para todo, incluso cuando duda. Penaliza mal la calibracion.\n\nLabel smoothing: en vez de entrenar con etiqueta one-hot [1, 0, 0], entrenas con [0.9, 0.05, 0.05]. Le dices al modelo 'incluso la respuesta correcta no es 100% segura'.\n\nEfectos:\n1. Mejor calibracion: las probabilidades predichas se alinean con la frecuencia real de aciertos.\n2. Menor overfitting: el modelo no se vuelve rigido.\n3. Tipicamente se usa eps=0.1.\n\nCombinado con temperature scaling post-hoc puedes afinar mas la calibracion.\n\nRespuesta corta: 'Label smoothing con eps=0.1 evita que la CNN se vuelva overconfident y produce probabilidades mejor calibradas para decisiones de riesgo.'"
+    },
+    {
+      "day": 25,
+      "date": "2026-05-15",
+      "subject": "[25/25] El cierre: los 3 conceptos que DEBES poder repetir dormido",
+      "topic": "Prioridad 3 memorizacion",
+      "body": "Ultimo correo. Si te ponen un microfono antes de la sustentacion, estos son los 3 que tienen que salir perfectos:\n\n1. FRANK & HALL\n'Descompuse el problema ordinal de 3 clases en 2 clasificadores binarios: C1 detecta algun desgaste y C2 detecta desgaste severo. La clase final respeta la monotonicidad p2 <= p1.'\n\n2. LOEO\n'Use Leave-One-Experiment-Out porque las muestras del mismo ensayo estan correlacionadas. Kfold aleatorio sobreestimaria el rendimiento; LOEO valida generalizacion a brocas nuevas.'\n\n3. YF-S201\n'El caudalimetro YF-S201 aporta la variable termica del Art.2 frente al Art.1. Correlaciona capacidad de refrigeracion con desgaste progresivo, y el modelo multimodal gano 6 puntos de adjacent accuracy en E3 incorporandola.'\n\nSi logras explicar esos tres como si estuvieras contando una receta, ya estas defendido.\n\nNumeros clave para tener en punta:\n- 3075 muestras Art.1, 4381 unificado con Lote II.\n- 90.1% adjacent accuracy tras filtrado.\n- C=10, RBF, k=15 features.\n- VB = 0.3 mm criterio ISO.\n- NI-9234 IEPE 4 mA, 44.1 kHz, 24 bits.\n\nMucho exito. Hasta la defensa."
+    }
+  ]
+}

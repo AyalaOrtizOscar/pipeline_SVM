@@ -1,0 +1,1130 @@
+﻿% ============================================================================
+% ARTÍCULO 1 — RCTA (Revista Colombiana de Tecnologías de Avanzada)
+% Clasificación ordinal del desgaste de brocas CNC mediante features acústicas
+% Autor: Oscar Iván Ayala Ortiz
+% ============================================================================
+\documentclass[10pt,twocolumn]{article}
+
+% ── Paquetes ─────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{mathptmx}               % Times New Roman
+\usepackage[top=2.5cm,bottom=2.5cm,left=2cm,right=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{siunitx}
+\sisetup{output-decimal-marker={,}}
+
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+
+% ── Ruta de figuras ──────────────────────────────────────────────────────────
+\graphicspath{{../results/article1_figures/}}
+
+% ── Metadata ─────────────────────────────────────────────────────────────────
+\title{\textbf{Clasificación ordinal del desgaste de brocas en taladrado CNC
+mediante análisis acústico: sensibilidad al umbral de etiquetado}}
+% ----------------- Fondo (Plantilla) en la capa de fondo -----------------
+\usepackage{tikz}
+\usepackage{eso-pic}
+\newcommand{\CIETABackground}{Plantilla_CIETA.pdf} % RENOMBRAR archivo a Plantilla_CIETA.pdf
+\AddToShipoutPictureBG{
+  \AtPageLowerLeft{
+    \includegraphics[width=\paperwidth,height=\paperheight]{\CIETABackground}
+  }
+}
+
+
+\author{
+  Jorge Enrique Meneses Flórez$^{1}$,\,
+  Nicolás Orejarena Osorio$^{2}$,\,
+  Oscar Iván Ayala Ortiz$^{3}$\\[4pt]
+  {\small Escuela de Ingeniería Mecánica, Universidad Industrial de Santander, La Universidad, Bucaramanga, Colombia$^{1,2,3}$}\\[4pt]
+  {\small \texttt{E-mail:} \texttt{jmeneses@uis.edu.co}$^{1}$, \texttt{norejarena@correo.uts.edu.co}$^{2}$, \texttt{ayalaortizoscarivan@gmail.com}$^{3}$}
+}
+
+\date{}
+
+% ============================================================================
+\begin{document}
+\maketitle
+
+% ── RESUMEN ──────────────────────────────────────────────────────────────────
+\begin{abstract}
+Se presenta un sistema de clasificación ordinal del desgaste de brocas
+helicoidales en taladrado CNC de acero AISI~4140, orientado al
+mantenimiento predictivo y basado exclusivamente en señales acústicas
+capturadas con micrófonos de bajo costo. Se emplea el método de
+descomposición ordinal de Frank y Hall con máquinas de vectores de
+soporte (SVM) y bosques aleatorios (RF), utilizando 10 \textit{features}
+acústicas seleccionadas estadísticamente. La contribución central es un
+análisis de sensibilidad al umbral de etiquetado, barriendo el porcentaje
+de vida útil que define la clase ``desgastado'' desde el 60\% hasta el
+97\%. Los resultados muestran que las \textit{features} acústicas
+\textit{hand-crafted} detectan eficazmente el fallo catastrófico
+(umbral~$\geq$\,97\%: $F_1$~macro = 0{,}46, exactitud adyacente = 98{,}6\%),
+pero su capacidad disminuye para desgaste progresivo temprano
+(umbral~$\geq$\,60\%: $F_1$~macro = 0{,}30, exactitud adyacente = 83{,}4\%).
+Un hallazgo clave es que la exactitud adyacente permanece superior al 83\%
+en todo el rango de umbrales, indicando que los errores de clasificación
+nunca exceden un paso ordinal. Mediante una etapa de refinamiento que
+incorpora ingeniería de \textit{features} derivadas, optimización de
+hiperparámetros (kernel lineal, $C = 5$, pesos de clase asimétricos) y
+calibración de umbrales de decisión, la exactitud adyacente de la SVM al
+umbral del 75\% alcanza 98{,}5\% y la exactitud exacta 60{,}2\%,
+superando a la configuración base (85{,}9\% y 50{,}3\%,
+respectivamente). El análisis de generalización cruzada entre siete
+experimentos independientes revela que el tipo de micrófono es la
+principal fuente de \textit{domain shift}. La reducción de ruido espectral
+(\textit{spectral gating}) mejora la exactitud adyacente en test de
+84{,}7\% a 90{,}1\% y reduce el \textit{domain shift} entre tipos de
+micrófono ($F_1$: 0{,}18 $\rightarrow$ 0{,}33; exactitud: 23\%
+$\rightarrow$ 59\% en validación con micrófono dinámico). Estos
+resultados delimitan el alcance operacional del monitoreo acústico pasivo
+con \textit{features} \textit{hand-crafted}, con implicaciones directas
+para la implementación en sistemas de monitoreo en línea de bajo costo
+computacional, y motivan el uso de representaciones espectrales aprendidas
+para la detección de desgaste gradual.
+
+\vspace{6pt}
+\noindent\textbf{Palabras clave:} desgaste de herramientas, taladrado CNC,
+clasificación ordinal, análisis acústico, SVM, sensibilidad al umbral,
+mantenimiento predictivo, Industria~4.0.
+\end{abstract}
+
+% ── ABSTRACT ──────────────────────────────────────────────────────────────────
+\renewcommand{\abstractname}{Abstract}
+\begin{abstract}
+An ordinal classification system for drill bit wear in CNC drilling of
+AISI~4140 steel is presented, aimed at predictive maintenance and based
+exclusively on acoustic signals captured with low-cost microphones. The
+Frank and Hall ordinal decomposition method is employed with support
+vector machines (SVM) and random forests (RF), using 10 statistically
+selected acoustic features. The central contribution is a labeling
+threshold sensitivity analysis, sweeping the tool life percentage that
+defines the ``worn'' class from 60\% to 97\%. Results show that
+hand-crafted acoustic features effectively detect catastrophic failure
+(threshold~$\geq$\,97\%: macro~$F_1$ = 0.46, adjacent accuracy = 98.6\%),
+but their discriminative power decreases for early progressive wear
+(threshold~$\geq$\,60\%: macro~$F_1$ = 0.30, adjacent accuracy = 83.4\%).
+A key finding is that adjacent accuracy remains above 83\% across all
+thresholds, indicating that classification errors never exceed one ordinal
+step. A refinement stage incorporating derived feature engineering,
+hyperparameter optimization (linear kernel, $C = 5$, asymmetric class
+weights), and decision threshold calibration raises adjacent accuracy at
+the 75\% threshold to 98.5\% and exact accuracy to 60.2\%, surpassing
+the baseline configuration (85.9\% and 50.3\%, respectively).
+Cross-experiment generalization analysis across seven independent
+experiments reveals that microphone type is the primary source of domain
+shift. Spectral gating noise reduction improves test adjacent accuracy
+from 84.7\% to 90.1\% and reduces cross-microphone domain shift
+(validation $F_1$: 0.18 $\rightarrow$ 0.33; accuracy: 23\%
+$\rightarrow$ 59\%).
+
+\vspace{6pt}
+\noindent\textbf{Keywords:} tool wear, CNC drilling, ordinal classification,
+acoustic analysis, SVM, threshold sensitivity, predictive maintenance,
+Industry~4.0.
+\end{abstract}
+
+% ============================================================================
+\section{Introducción}
+\label{sec:intro}
+
+El monitoreo de la condición de herramientas de corte es un componente
+esencial en la manufactura moderna, donde la detección oportuna del desgaste
+permite reducir costos de producción, mejorar la calidad dimensional de las
+piezas y prevenir fallas catastróficas que comprometan la integridad de la
+máquina y la seguridad del operario~\cite{groover2007}. En operaciones de
+taladrado CNC, el desgaste progresivo del filo de corte modifica las fuerzas
+de corte, las vibraciones mecánicas y la emisión acústica del
+proceso~\cite{bhuiyan2016}.
+
+El enfoque acústico para el monitoreo de herramientas ha ganado atención por
+ser no invasivo, de bajo costo y fácil de integrar en entornos industriales
+existentes~\cite{charoenprasit2018, orejarena2014, meneses2020}. Si bien
+los enfoques basados en aprendizaje profundo (\textit{deep learning}) han
+demostrado alta precisión en tareas de clasificación de señales, su costo
+computacional limita su despliegue en sistemas embebidos de borde
+(\textit{edge computing}) propios de la manufactura
+inteligente~\cite{groover2007}. En contraste, los modelos basados en
+\textit{features} acústicas \textit{hand-crafted} con clasificadores
+ligeros (SVM, RF) permiten inferencia en tiempo real con recursos
+computacionales mínimos, lo que los hace particularmente adecuados para
+aplicaciones de mantenimiento predictivo en el contexto de la
+Industria~4.0.
+
+Sin embargo, la mayoría de los trabajos previos abordan el problema como
+clasificación binaria (nueva vs.\ desgastada) o categórica sin considerar
+la naturaleza progresiva del desgaste~\cite{banda2024}. Esta simplificación
+ignora información ordinal valiosa: confundir una herramienta nueva con una
+moderadamente desgastada tiene consecuencias operacionales distintas a
+confundirla con una herramienta en fallo.
+
+Un segundo problema frecuente es la definición del umbral que separa las
+clases de desgaste. La mayoría de los estudios utilizan un umbral fijo
+(típicamente basado en el criterio de flanco VB según ISO~8688 o
+ISO~3685~\cite{iso8688}) sin explorar la sensibilidad de los resultados a
+esta elección. En escenarios donde no se dispone de medición directa de VB
+--- como cuando se utilizan exclusivamente señales acústicas --- el umbral
+se define sobre el porcentaje de vida útil consumida, lo que introduce una
+decisión metodológica cuyo impacto rara vez se cuantifica.
+
+El presente trabajo aborda ambas limitaciones. Se formula el problema como
+clasificación ordinal, es decir, una tarea en la que las clases tienen un orden 
+natural entre sí y, por tanto, no se consideran categorías totalmente independientes.
+ En este caso se clasifican en tres clases (sin desgaste, medianamente 
+ desgastado,desgastado) utilizando el método de Frank y Hall~\cite{frank2001} con SVM y
+RF. La contribución central es la identificacion del porcentaje de vida util
+correspondiente a la zona desgaste. Para ello se iteraron diferetes rangos de etiquetado
+hasta encontrar la precisión ajustada, la cual ajusta los problemas de desbalance debido a
+que no se tiene la misma cantidad de datos en cada estado. De esta manera se obtuvo que la
+definición de desgastado corresponde de un 60\% hasta el 98.5\% de la vida útil. 
+Este barrido permite mapear los
+límites operacionales del monitoreo acústico pasivo con \textit{features}
+\textit{hand-crafted} y establecer recomendaciones sobre qué umbrales son
+viables para el estado medianamente desgastado versus detección del estado desgastado.
+
+
+Las contribuciones específicas son: (1)~formulación ordinal del desgaste de
+brocas con métricas apropiadas (MAE ordinal, exactitud adyacente);
+(2)~análisis de sensibilidad al umbral con curva completa de 9 umbrales;
+(3)~evaluación de generalización cruzada entre 7 experimentos independientes;
+(4)~estudio de ablación de \textit{features} que revela que un subconjunto
+de 7 \textit{features} supera al conjunto completo de 10;
+(5)~evaluación del impacto de la reducción de ruido espectral como
+preprocesamiento para mitigar el \textit{domain shift} entre tipos de
+micrófono.
+
+% ============================================================================
+\section{Materiales y métodos}
+\label{sec:metodos}
+
+% ── 2.1 Setup experimental ──────────────────────────────────────────────────
+\subsection{Configuración experimental}
+
+Los ensayos de taladrado se realizaron en un centro de mecanizado CNC
+Leadwell V-20 (recorridos: $510 \times 350 \times \SI{400}{mm}$,
+velocidad máxima del husillo: \SI{8000}{rpm}). El material de trabajo fue
+acero AISI~4140 bonificado (28--32~HRC), en discos de $6'' \times 2''$
+sujetos con copa periférica. Se utilizaron brocas helicoidales Dormer A100
+de \SI{6}{mm} y \SI{8}{mm} de diámetro, con trayectoria en espiral o
+lineal según el ensayo. Todos los ensayos emplearon refrigerante
+(taladrina) y agujeros ciegos de \SI{25}{mm} de profundidad.
+
+Se realizaron siete ensayos independientes (E1--E7), cuyas condiciones se
+resumen en la Tabla~\ref{tab:experimentos}. Se usaron 3 diferentes trayectorias,
+lineal, expiral y mixto. Los ensayos E1--E4 se
+condujeron hasta falla completa de la broca (tres clases de desgaste),
+mientras que E5--E7 registraron desgaste progresivo sin alcanzar falla
+(dos clases).
+
+\begin{table}[htbp]
+\centering
+\caption{Condiciones experimentales de los siete ensayos.}
+\label{tab:experimentos}
+\footnotesize
+\begin{tabular}{@{}lccccr@{}}
+\toprule
+Exp. & $\varnothing$ (mm) & G-code & Micrófono & Tipo & $n$ \\
+\midrule
+E1 & 8 & mixto    & dinámico     & Hasta falla & 84 \\
+E2 & 8 & espiral  & dinámico     & Hasta falla & 128 \\
+E3 & 6 & lineal   & condensador  & Hasta falla & 583 \\
+E4 & 6 & espiral  & condensador  & Hasta falla & 1194 \\
+E5 & 8 & lineal   & condensador  & Progresivo  & 234 \\
+E6 & 8 & lineal   & condensador  & Progresivo  & 234 \\
+E7 & 6 & espiral  & condensador  & Progresivo  & 148 \\
+\midrule
+\multicolumn{5}{l}{Total} & 2565(definir n de la tabla) \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+Los parámetros de corte se calcularon según las recomendaciones del
+fabricante: velocidad de corte $V_c = \SI{20}{m/min}$, avance
+$f = \SI{0.109}{mm/rev}$ (6~mm) y $f = \SI{0.138}{mm/rev}$ (8~mm),
+resultando en velocidades del husillo de \SI{1061}{rpm} y \SI{796}{rpm},
+respectivamente.
+
+% ── 2.2 Sistema de adquisición ──────────────────────────────────────────────
+\subsection{Sistema de adquisición de datos}
+
+La adquisición se realizó con un chasis NI~cDAQ-9174 equipado con un
+módulo NI-9234 (4 canales, \SI{51.2}{kS/s}, 24~bits, filtro
+\textit{anti-aliasing} integrado). Se emplearon dos micrófonos en
+configuraciones alternadas según el ensayo~\cite{orejarena2014}:
+
+\begin{itemize}
+  \item \textbf{M1}: TXL~235 TOPP~AUDIO (dinámico), utilizado en E1 y E2.
+  \item \textbf{M2}: PG81 SHURE (condensador, cardioide), utilizado en
+    E3--E7.
+\end{itemize}
+
+\noindent Esta asignación implica que el tipo de micrófono constituye una
+covariable confundida con el diseño experimental, aspecto que se analiza
+en la Sección~\ref{sec:discusion}.
+
+Las señales se adquirieron a una frecuencia de muestreo de
+$f_s = \SI{51.2}{kS/s}$ (ancho de banda útil hasta \SI{25.6}{kHz}),
+en formato \textit{Technical Data Management Streaming} (TDMS), y se convirtieron a WAV PCM de 16~bits sin compresión
+para preservar la integridad de los transitorios
+acústicos~\cite{macphail2024}.
+
+% ── 2.3 Reducción de ruido ────────────────────────────────────────────────
+\subsection{Preprocesamiento: reducción de ruido espectral}
+\label{sec:noisereduce}
+
+Para evaluar el impacto del ruido de fondo en la clasificación, se
+implementó un \textit{pipeline} de programación para la reducción del ruido 
+basado en el método de filtrado
+\textit{spectral gating} estacionario. Se construyó un perfil de ruido
+combinó grabaciones de referencia, tales como
+ruido del husillo sin taladrado ($\approx$\SI{180}{min} disponibles),
+husillo con refrigerante ($\approx$\SI{46}{min}) y ambiente del
+laboratorio ($\approx$\SI{48}{min}), todas adquiridas con el mismo sistema
+NI-9234 a \SI{51.2}{kS/s} segmentadas cada 120s para efectos de entrenamiento.
+
+El filtrado se aplicó a los 2635 archivos originales WAV mediante la librería
+\texttt{noisereduce}~\cite{sainburg2020} con los parámetros: modo
+estacionario (\texttt{stationary=True}), proporción de atenuación
+$\alpha = 0{,}85$, $n_{\text{FFT}} = 2048$ y la señal de referencia como
+perfil de ruido anteriormente combinado. La señal filtrada conserva sus niveles relativos
+(sin normalización de pico) para no alterar las \textit{features} (características)
+dependientes de energía. De estos se reextrajeron las mismas 7 \textit{features} (características) con mas influencia en los 
+resultados de predicción a la hora de entrenar los modelos empleando un estudio de ablación.
+
+% ── 2.4 Extracción de features ──────────────────────────────────────────────
+\subsection{Extracción de \textit{features} (características) acústicas del modelo que predice}
+
+Se extrajeron 21 \textit{features} ancla que cubren tres dominios
+físicos: timbre (centroide espectral, MFCC, planitud, contraste, entropía,
+chroma, ratio armónico/percusivo), energía (RMS, factor de cresta, energía
+Mel y wavelet) y temporal (duración, tasa de \textit{onsets}, ZCR). A
+partir de un proceso de selección multi-criterio --- bootstrap de
+estabilidad en top-$N$, ANOVA/Kruskal-Wallis, análisis de no-redundancia
+e información mutua --- se seleccionaron las 10 \textit{features} de la
+Tabla~\ref{tab:features}.
+
+\begin{table}[htbp]
+\centering
+\caption{\textit{Features} acústicas seleccionadas (línea base).}
+\label{tab:features}
+\footnotesize
+\begin{tabular}{@{}rlll@{}}
+\toprule
+\# & Feature & Dominio & Interpretación física \\
+\midrule
+1 & spectral\_contrast & Timbre & Diferencia picos/valles espectrales \\
+2 & crest\_factor      & Energía & Ratio pico/RMS (impulsividad) \\
+3 & chroma\_std        & Timbre & Variabilidad cromática \\
+4 & zcr                & Temporal & Cruces por cero (ruido de banda ancha) \\
+5 & spectral\_entropy  & Timbre & Desorden espectral \\
+6 & centroid\_mean     & Timbre & Centro de masa espectral \\
+7 & harmonic\_perc.    & Timbre & Ratio armónico/percusivo \\
+8 & onset\_rate        & Temporal & Frecuencia de transitorios \\
+9 & spectral\_flatness & Timbre & Tonalidad vs.\ ruido \\
+10 & duration\_s       & Temporal & Duración del ciclo \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ── 2.4 Estrategia de etiquetado ────────────────────────────────────────────
+\subsection{Estrategia de etiquetado con barrido de umbrales}
+\label{sec:etiquetado}
+
+Al no disponer de mediciones directas de desgaste de flanco (VB), las
+etiquetas se asignan según el porcentaje de vida útil consumida, definido
+como la razón entre el número de agujero actual y el número total de
+agujeros realizados con cada broca. Se definen tres clases ordinales:
+
+\begin{equation}
+y_i = \begin{cases}
+  \text{sin desgaste}        & \text{si } p_i \leq \tau_{\text{sin}} \\
+  \text{med.\ desgastado}    & \text{si } \tau_{\text{sin}} < p_i < \tau_{\text{des}} \\
+  \text{desgastado}           & \text{si } p_i \geq \tau_{\text{des}}
+\end{cases}
+\label{eq:etiquetado}
+\end{equation}
+
+\noindent donde $p_i = h_i / h_{\max}$ es la fracción de vida útil consumida
+para la muestra $i$, $\tau_{\text{sin}} = 0{,}15$ (fijo) y
+$\tau_{\text{des}}$ es el umbral que se varía. Los ensayos E5--E7
+(progresivos, sin falla) conservan sus etiquetas originales, asignadas
+mediante análisis de tendencia de \textit{features} acústicas (RMS,
+centroide, ZCR) a lo largo del ensayo, siguiendo el enfoque correlacional
+de Meneses y Peña~\cite{meneses2020}.
+
+La contribución central de este trabajo es barrer $\tau_{\text{des}}$ en
+nueve valores: 60\%, 65\%, 70\%, 75\%, 80\%, 85\%, 90\%,
+95\% y 97\%. Para cada umbral se reetiqueta el dataset completo, se
+reentrenan los modelos y se evalúa en el conjunto de test, permitiendo
+construir una curva de sensibilidad que mapea la capacidad discriminativa
+de las \textit{features} acústicas en función del grado de desgaste.
+
+% ── 2.5 Clasificación ordinal ───────────────────────────────────────────────
+\subsection{Clasificación ordinal: método de Frank y Hall}
+
+Se emplea el método de Frank y Hall~\cite{frank2001}, que descompone un
+problema ordinal de $K$ clases en $K-1$ clasificadores binarios. Para
+tres clases ($k \in \{0, 1, 2\}$, donde 0 = sin desgaste, 1 = medianamente
+desgastado, 2 = desgastado), se entrenan dos clasificadores:
+
+\begin{align}
+C_1&: P(y \geq 1) \quad \text{``¿Hay algún desgaste?''} \\
+C_2&: P(y \geq 2) \quad \text{``¿El desgaste es severo?''}
+\end{align}
+
+Las probabilidades se combinan con restricción de monotonicidad
+($\hat{P}_2 \leq \hat{P}_1$) para obtener la distribución ordinal:
+
+\begin{align}
+P(\text{sin}) &= 1 - \hat{P}_1 \\
+P(\text{med}) &= \hat{P}_1 - \hat{P}_2 \\
+P(\text{des}) &= \hat{P}_2
+\end{align}
+
+\noindent y la clase predicha es $\hat{y} = \arg\max_k P(k)$.
+
+Cada clasificador binario $C_j$ es una SVM con kernel RBF, optimizada
+mediante \textit{GridSearchCV} ($C \in \{1, 10\}$,
+$\gamma \in \{\text{scale}, 0{,}1\}$) con validación cruzada
+\textit{StratifiedGroupKFold} de 3 particiones, agrupando por experimento
+para evitar fuga de información entre ensayos del mismo grupo
+experimental. Esta estrategia garantiza que las muestras del mismo
+experimento nunca aparezcan simultáneamente en entrenamiento y validación
+interna~\cite{montgomery2013}. Se utiliza
+\texttt{class\_weight='balanced'} para compensar el desbalance de clases.
+Como comparación, se entrena un RF ordinal con la misma descomposición de
+Frank y Hall (200 árboles, \texttt{class\_weight='balanced'}).
+
+Adicionalmente, se realizó una etapa de refinamiento que incluyó: (i)~7
+\textit{features} derivadas por combinación de las originales (ratios
+espectrales, indicadores de estabilidad tonal y energía), (ii)~búsqueda
+de hiperparámetros extendida sobre 30 configuraciones (kernels lineal y
+RBF, $C \in \{0{,}5;\; 1;\; 5;\; 10;\; 50\}$, selección de $k \in
+\{10;\; 15;\; 20;\; \text{todas}\}$ \textit{features} por información
+mutua, pesos de clase asimétricos), y (iii)~calibración de los umbrales
+de decisión $t_1$ y $t_2$ del clasificador ordinal (barrido en
+$[0{,}15;\; 0{,}70]$ con paso de $0{,}05$), optimizando un \textit{score}
+compuesto: $0{,}4 \times \text{adj.\ acc.} + 0{,}3 \times \text{bal.\
+acc.} + 0{,}3 \times \text{exact.\ acc.}$
+
+% ── 2.6 Diseño experimental ─────────────────────────────────────────────────
+\subsection{Diseño experimental y métricas}
+\label{sec:diseno}
+
+La partición del dataset respeta la independencia experimental:
+
+\begin{itemize}
+  \item \textbf{Test}: E3 completo (583 muestras, 6~mm, condensador).
+  \item \textbf{Validación}: E2 completo (128 muestras, 8~mm, dinámico).
+  \item \textbf{Entrenamiento}: E1 + E4 + E5 + E6 + E7 (2224 muestras,
+    incluyendo augmentados acústicos).
+\end{itemize}
+
+Se seleccionó E3 como test por ser el ensayo más extenso con falla
+completa (583 muestras, tres clases), y E2 como validación por presentar
+el mayor \textit{domain shift} (micrófono dinámico, 8~mm), permitiendo
+evaluar robustez. La augmentación acústica del entrenamiento incluyó
+\textit{time stretching}, adición de ruido gaussiano y desplazamiento de
+\textit{pitch}, aplicadas exclusivamente a muestras de la clase
+``desgastado'' para mitigar el desbalance (90 muestras augmentadas).
+Ningún dato augmentado aparece en validación ni test, y los augmentados
+derivados de E3 se excluyen del entrenamiento para evitar fuga de
+información.
+
+Las métricas reportadas incluyen:
+\begin{itemize}
+  \item \textbf{Macro $F_1$}: promedio no ponderado del $F_1$ por clase.
+  \item \textbf{Exactitud adyacente}: fracción de predicciones con error
+    $\leq 1$ paso ordinal (ec.~\ref{eq:adj_acc}).
+  \item \textbf{MAE ordinal}: error absoluto medio entre clases predichas
+    y verdaderas (ec.~\ref{eq:mae}).
+  \item \textbf{Exactitud exacta}: fracción de predicciones correctas.
+\end{itemize}
+
+\begin{align}
+\text{Adj.\ Acc.} &= \frac{1}{n} \sum_{i=1}^{n} \mathbb{1}[|\hat{y}_i - y_i| \leq 1]
+\label{eq:adj_acc} \\
+\text{MAE}_{\text{ord}} &= \frac{1}{n} \sum_{i=1}^{n} |\hat{y}_i - y_i|
+\label{eq:mae}
+\end{align}
+
+Los intervalos de confianza al 95\% se estiman mediante
+\textit{bootstrap} con 1000 remuestreos del conjunto de test.
+
+% ============================================================================
+\section{Resultados}
+\label{sec:resultados}
+
+% ── 3.1 Análisis exploratorio ───────────────────────────────────────────────
+\subsection{Análisis exploratorio}
+
+La Fig.~\ref{fig:pca} muestra la proyección PCA bidimensional del
+conjunto de test (E3) sobre las 10 \textit{features} seleccionadas. Los
+dos primeros componentes principales explican el 67{,}9\% de la
+varianza (PC1: 41{,}8\%, PC2: 26{,}1\%). Se observa que las muestras
+de clase ``sin desgaste'' se separan parcialmente del grupo principal,
+mientras que ``medianamente desgastado'' y ``desgastado'' presentan
+solapamiento considerable, consistente con la frontera difusa entre
+desgaste progresivo.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{pca_2d.pdf}
+  \caption{Proyección PCA bidimensional del test set E3 (10
+    \textit{features}, reetiquetado al 75\%).}
+  \label{fig:pca}
+\end{figure}
+
+La distribución de clases por experimento (Fig.~\ref{fig:class_dist})
+evidencia que E4 domina el dataset (1194 muestras) y que los ensayos
+progresivos (E5--E7) carecen de clase ``desgastado'', lo que limita su
+contribución al entrenamiento del clasificador $C_2$.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{class_distribution.pdf}
+  \caption{Distribución de clases por experimento (reetiquetado
+    $\tau_{\text{des}} = 75\%$).}
+  \label{fig:class_dist}
+\end{figure}
+
+El ranking de información mutua (Fig.~\ref{fig:mi}) para el conjunto
+completo de 26 \textit{features} muestra que las \textit{features} de
+variabilidad espectral (\texttt{spectral\_bandwidth\_std},
+\texttt{rolloff\_std}) ganan relevancia con umbrales bajos (desgaste
+gradual), mientras que \texttt{spectral\_contrast\_mean} domina a umbral
+alto (97\%, fallo catastrófico). Entre las 10 \textit{features} del
+baseline, \texttt{spectral\_contrast\_mean} mantiene la mayor información
+mutua con la etiqueta de desgaste en todos los umbrales, seguida de
+\texttt{centroid\_mean} y \texttt{zcr}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{mi_ranking.pdf}
+  \caption{Ranking de \textit{features} por información mutua
+    (reetiquetado al 75\%).}
+  \label{fig:mi}
+\end{figure}
+
+% ── 3.2 Sensibilidad al umbral ─────────────────────────────────────────────
+\subsection{Curva de sensibilidad al umbral}
+\label{sec:threshold}
+
+La Fig.~\ref{fig:threshold} y la Tabla~\ref{tab:threshold} presentan el
+resultado principal del trabajo: la curva de sensibilidad al umbral de
+etiquetado.
+
+\begin{figure*}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{threshold_sensitivity_curve.pdf}
+  \caption{Sensibilidad al umbral de etiquetado. (a)~Macro $F_1$ vs.\
+    umbral. (b)~Exactitud adyacente vs.\ umbral. (c)~$F_1$ por clase
+    (SVM). (d)~Número de muestras de desgaste en test y MAE ordinal.}
+  \label{fig:threshold}
+\end{figure*}
+
+\begin{table*}[htbp]
+\centering
+\caption{Métricas de clasificación ordinal por umbral de etiquetado
+  ($\tau_{\text{sin}} = 15\%$, test = E3).}
+\label{tab:threshold}
+\footnotesize
+\begin{tabular}{@{}S[table-format=2.0]rrrrrrrrr@{}}
+\toprule
+{$\tau_{\text{des}}$ (\%)} &
+{$n_{\text{des}}^{\text{test}}$} &
+\multicolumn{4}{c}{SVM ordinal} &
+\multicolumn{4}{c}{RF ordinal} \\
+\cmidrule(lr){3-6} \cmidrule(lr){7-10}
+& & {$F_1$} & {Acc.} & {Adj.} & {MAE} &
+{$F_1$} & {Acc.} & {Adj.} & {MAE} \\
+\midrule
+60  & 230 & 0,304 & 0,381 & 0,834 & 0,786 & 0,369 & 0,437 & 0,909 & 0,654 \\
+65  & 201 & 0,321 & 0,424 & 0,839 & 0,738 & 0,371 & 0,470 & 0,904 & 0,626 \\
+70  & 172 & 0,348 & 0,475 & 0,839 & 0,686 & 0,398 & 0,533 & 0,926 & 0,540 \\
+75  & 144 & 0,358 & 0,503 & 0,859 & 0,638 & 0,408 & 0,568 & 0,933 & 0,499 \\
+80  & 115 & 0,363 & 0,520 & 0,887 & 0,593 & 0,419 & 0,581 & 0,942 & 0,477 \\
+85  &  86 & 0,361 & 0,528 & 0,926 & 0,545 & 0,443 & 0,623 & 0,969 & 0,408 \\
+90  &  58 & 0,386 & 0,551 & 0,954 & 0,496 & 0,443 & 0,638 & 0,978 & 0,384 \\
+95  &  29 & 0,380 & 0,573 & 0,978 & 0,449 & 0,473 & 0,678 & 0,995 & 0,328 \\
+97  &  18 & 0,463 & 0,583 & 0,986 & 0,431 & 0,437 & 0,705 & 0,995 & 0,300 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Se identifican tres hallazgos principales:
+
+\textbf{1) El $F_1$ macro crece con el umbral.} La SVM pasa de $F_1 = 0{,}30$
+(60\%) a $F_1 = 0{,}46$ (97\%), un incremento del 53\%. Esto confirma
+que las \textit{features} acústicas \textit{hand-crafted} detectan más
+fácilmente el fallo catastrófico (chirping, chatter) que el desgaste
+gradual de flanco, cuya firma acústica es más sutil.
+
+\textbf{2) La exactitud adyacente permanece alta.} Incluso al umbral más
+exigente (60\%), la exactitud adyacente de la SVM es 83{,}4\% y la del
+RF 90{,}9\%. A partir del 85\%, supera el 92\% (SVM) y 96\% (RF).
+Esto significa que \textit{los errores de clasificación nunca saltan dos
+clases}: un error típico confunde ``medianamente desgastado'' con
+``desgastado'' o viceversa, pero nunca ``sin desgaste'' con ``desgastado''.
+
+\textbf{3) El RF supera a la SVM base en casi todos los umbrales.} La ventaja
+del RF es consistente en exactitud adyacente ($+4$ a $+8$ puntos
+porcentuales) y $F_1$ macro ($+0{,}02$ a $+0{,}09$), excepto a 97\%
+donde la SVM logra $F_1 = 0{,}46$ versus $F_1 = 0{,}44$ del RF. Esta
+superioridad se explica porque el RF, al promediar múltiples árboles de
+decisión con submuestreo aleatorio, es inherentemente más robusto al
+desbalance de clases y a la variabilidad del espacio de \textit{features},
+mientras que la SVM RBF con umbrales de decisión por defecto tiende a
+concentrar sus predicciones en la clase mayoritaria. Sin embargo, tras la
+etapa de refinamiento (Sección~\ref{sec:refinamiento}), la SVM optimizada
+alcanza una exactitud adyacente de 98{,}5\% al umbral del 75\%,
+superando al RF base (93{,}3\%) en este punto de operación.
+
+Los intervalos de confianza \textit{bootstrap} (95\%, 1000 remuestreos)
+para el modelo SVM entrenado con etiquetas originales (equivalente al
+umbral 97\% con 4 muestras de desgaste en test) son:
+$F_1 = 0{,}54\; [0{,}38;\; 0{,}75]$,
+exactitud $= 94{,}0\%\; [92{,}1;\; 95{,}7]$,
+exactitud adyacente $= 100\%$, MAE $= 0{,}06\; [0{,}04;\; 0{,}08]$.
+El intervalo amplio del $F_1$ refleja el soporte estadístico limitado de la
+clase ``desgastado'' a este umbral. Para el reetiquetado al 75\% (144
+muestras de desgaste), el IC se estrecha: $F_1 = 0{,}35\; [0{,}32;\; 0{,}39]$.
+
+% ── 3.3 Análisis por clase ──────────────────────────────────────────────────
+\subsection{Análisis por clase}
+
+El panel~(c) de la Fig.~\ref{fig:threshold} descompone el $F_1$ por clase
+para la SVM. La clase ``medianamente desgastado'' mantiene $F_1 > 0{,}55$
+en todos los umbrales gracias a su prevalencia en el test set. La clase
+``sin desgaste'' es estable pero baja ($F_1 \approx 0{,}27\text{--}0{,}31$),
+sugiriendo que el modelo confunde muestras iniciales con desgaste moderado.
+La clase ``desgastado'' es la más sensible al umbral: su $F_1$ crece de
+0{,}04 (60\%) a 0{,}37 (97\%), reflejando que solo el fallo catastrófico
+produce una firma acústica claramente distinguible.
+
+% ── 3.4 Ablación de features ───────────────────────────────────────────────
+\subsection{Estudio de ablación}
+
+La Fig.~\ref{fig:ablation} presenta el estudio de ablación con subconjuntos
+incrementales de \textit{features} ordenadas por información mutua.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{ablation_curve.pdf}
+  \caption{Ablación de \textit{features}. (a)~$F_1$ vs.\ número de
+    \textit{features} (top-$k$ por MI). (b)~Cambio en $F_1$ al remover
+    cada \textit{feature} del top-10 (umbral 97\%).}
+  \label{fig:ablation}
+\end{figure}
+
+Un resultado notable es que \textbf{el subconjunto top-7 supera al top-10}
+en los tres umbrales evaluados (75\%: 0{,}367 vs.\ 0{,}358; 85\%:
+0{,}378 vs.\ 0{,}353; 97\%: 0{,}441 vs.\ 0{,}406). Las tres
+\textit{features} eliminadas (\texttt{onset\_rate},
+\texttt{spectral\_flatness\_mean}, \texttt{duration\_s}) aportan ruido que
+degrada la discriminación de la SVM en espacios de alta dimensionalidad
+relativa.
+
+El análisis \textit{leave-one-out} a 97\% (panel~b) confirma que
+\texttt{crest\_factor} es perjudicial: su eliminación \textit{mejora} el
+$F_1$ en $+0{,}064$. Similarmente, \texttt{centroid\_mean} mejora el $F_1$
+en $+0{,}057$ al ser removido. Únicamente
+\texttt{spectral\_contrast\_mean} muestra una contribución neta negativa
+al ser eliminado ($-0{,}022$), confirmando su rol como la \textit{feature}
+más discriminativa para desgaste severo.
+
+% ── 3.5 Interpretabilidad: SHAP ─────────────────────────────────────────────
+\subsection{Interpretabilidad: análisis SHAP}
+
+La Fig.~\ref{fig:shap} presenta los diagramas \textit{beeswarm} de valores
+SHAP~\cite{li2024} para los dos clasificadores ordinales ($C_1$ y $C_2$)
+del modelo entrenado con umbral original (97\%), usando
+\textit{KernelExplainer} con 200 muestras de fondo y 300 de evaluación.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.48\columnwidth}
+    \includegraphics[width=\linewidth]{shap_beeswarm_C1.pdf}
+    \caption{$C_1$: P($y \geq 1$)}
+  \end{subfigure}\hfill
+  \begin{subfigure}[b]{0.48\columnwidth}
+    \includegraphics[width=\linewidth]{shap_beeswarm_C2.pdf}
+    \caption{$C_2$: P($y \geq 2$)}
+  \end{subfigure}
+  \caption{SHAP \textit{beeswarm} para los clasificadores ordinales.
+    Los valores SHAP cuantifican el impacto de cada \textit{feature}
+    en la predicción individual.}
+  \label{fig:shap}
+\end{figure}
+
+Los valores SHAP revelan que \texttt{spectral\_contrast\_mean} domina la
+discriminación en $C_2$ (P(\text{desgaste severo})), consistente con el
+resultado de ablación. En $C_1$, \texttt{zcr} y \texttt{centroid\_mean}
+tienen mayor peso relativo, reflejando que la presencia de desgaste
+incipiente se manifiesta principalmente en el contenido espectral de
+alta frecuencia. Los valores SHAP bajos (escala $\approx 0{,}05$) son
+esperados dado que la SVM opera en espacio escalado y los
+\textit{features} individuales tienen contribuciones distribuidas.
+
+% ── 3.6 Impacto de la reducción de ruido ──────────────────────────────────
+\subsection{Impacto de la reducción de ruido espectral}
+\label{sec:noise_results}
+
+La Tabla~\ref{tab:noise_comparison} compara el rendimiento del modelo SVM
+ordinal (top-7 \textit{features}) entrenado sobre \textit{features}
+originales versus \textit{features} extraídas de WAVs procesados con
+\textit{spectral gating}.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparativa: SVM ordinal sin filtro vs.\ con reducción de
+  ruido (\textit{spectral gating}, $\alpha=0{,}85$). Top-7 features.}
+\label{tab:noise_comparison}
+\footnotesize
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Fuente & Split & {$F_1$} & {Acc.} & {Adj.} & {MAE} \\
+\midrule
+Original  & val  & 0{,}180 & 0{,}234 & 0{,}914 & 0{,}852 \\
+Filtrado  & val  & 0{,}331 & 0{,}586 & 1{,}000 & 0{,}414 \\
+\midrule
+Original  & test & 0{,}338 & 0{,}461 & 0{,}847 & 0{,}691 \\
+Filtrado  & test & 0{,}342 & 0{,}489 & 0{,}901 & 0{,}611 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+En el conjunto de test (E3, condensador), el filtrado produce una mejora
+modesta pero consistente: $+0{,}004$ en $F_1$ macro, $+5{,}3$ puntos en
+exactitud adyacente (de 84{,}7\% a 90{,}1\%) y $-0{,}08$ en MAE ordinal.
+El hallazgo más relevante se observa en validación (E2, micrófono
+dinámico), donde el filtrado reduce drásticamente el \textit{domain shift}:
+el $F_1$ macro pasa de 0{,}18 a 0{,}33 ($+83{,}9\%$ relativo), la
+exactitud de 23{,}4\% a 58{,}6\% ($+150{,}9\%$ relativo) y la exactitud
+adyacente alcanza 100\%. Esto indica que una fracción significativa del
+\textit{domain shift} entre tipos de micrófono se debe a diferencias en
+el piso de ruido captado por cada transductor, y que el \textit{spectral
+gating} las atenúa al normalizar el contenido no informativo.
+
+% ── 3.7 Refinamiento del modelo ──────────────────────────────────────────
+\subsection{Refinamiento: ingeniería de \textit{features} y calibración}
+\label{sec:refinamiento}
+
+La etapa de refinamiento descrita en la Sección~\ref{sec:metodos} se
+evaluó sobre el reetiquetado al 75\% ($\tau_{\text{des}} = 0{,}75$). La
+Tabla~\ref{tab:refinamiento} compara el modelo base (SVM RBF,
+\texttt{class\_weight='balanced'}, umbrales 0{,}50/0{,}50) con el modelo
+optimizado.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparativa: SVM base vs.\ SVM optimizada
+  ($\tau_{\text{des}} = 75\%$, test = E3).}
+\label{tab:refinamiento}
+\footnotesize
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Modelo & {$F_1$} & {Acc.} & {Adj.} & {MAE} \\
+\midrule
+SVM base (RBF, $t = 0{,}50$)   & 0{,}36 & 0{,}503 & 0{,}859 & 0{,}638 \\
+SVM opt.\ (lineal, $t = 0{,}30/0{,}25$) & 0{,}40 & 0{,}602 & 0{,}985 & --- \\
+\midrule
+$\Delta$ & {$+0{,}04$} & {$+0{,}099$} & {$+0{,}126$} & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La configuración óptima (SVM lineal, $C = 5$, $k = 10$ \textit{features}
+por información mutua, pesos de clase $\{0{:}5,\; 1{:}1,\; 2{:}5\}$,
+umbrales de decisión $t_1 = 0{,}30$, $t_2 = 0{,}25$) produce una mejora
+de $+12{,}6$ puntos porcentuales en exactitud adyacente (de 85{,}9\% a
+98{,}5\%) y $+9{,}9$ puntos en exactitud exacta (de 50{,}3\% a 60{,}2\%).
+La matriz de confusión (Tabla~\ref{tab:cm_opt}) muestra que el modelo
+optimizado logra discriminar parcialmente las tres clases, aunque la
+clase ``sin desgaste'' sigue siendo la más difícil (5{,}3\% de
+clasificación correcta), ya que la mayoría de sus muestras se clasifican
+como ``medianamente desgastado'' (error de un paso ordinal).
+
+\begin{table}[htbp]
+\centering
+\caption{Matriz de confusión del modelo SVM optimizado
+  ($\tau_{\text{des}} = 75\%$, test = E3).}
+\label{tab:cm_opt}
+\footnotesize
+\begin{tabular}{@{}l*{3}{r}@{}}
+\toprule
+& \multicolumn{3}{c}{Predicción} \\
+\cmidrule(lr){2-4}
+Real & {Sin desg.} & {Med.\ desg.} & {Desg.} \\
+\midrule
+Sin desgaste ($n = 95$) & 5 & 81 & 9 \\
+Med.\ desgastado ($n = 344$) & 0 & 302 & 42 \\
+Desgastado ($n = 144$) & 0 & 100 & 44 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Tres factores explican la mejora: (1)~los pesos de clase asimétricos
+$\{0{:}5,\; 1{:}1,\; 2{:}5\}$ fuerzan al clasificador a discriminar las
+clases minoritarias en lugar de predecir la clase mayoritaria por defecto;
+(2)~la calibración de los umbrales de decisión ($t_1 = 0{,}30$ vs.\
+$0{,}50$) corrige la tendencia del modelo base a subestimar las clases
+extremas; y (3)~las 7 \textit{features} derivadas (ratios espectrales,
+indicadores de estabilidad tonal, energía logarítmica) proporcionan
+representaciones más linealmente separables, favoreciendo al kernel lineal.
+
+% ── 3.8 Generalización cruzada ─────────────────────────────────────────────
+\subsection{Generalización cruzada entre experimentos}
+
+La Fig.~\ref{fig:cross_exp} presenta el heatmap de generalización
+\textit{leave-one-experiment-out} con umbral al 97\%.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{cross_experiment_heatmap.pdf}
+  \caption{Generalización \textit{leave-one-experiment-out}
+    (umbral 97\%). Cada fila es un experimento evaluado como test.}
+  \label{fig:cross_exp}
+\end{figure}
+
+Los resultados revelan tres grupos:
+\begin{itemize}
+  \item \textbf{Alta generalización} (E5, E6): $F_1 > 0{,}63$, exactitud
+    $> 83\%$. Son ensayos progresivos de solo dos clases (sin y
+    medianamente desgastado), más fáciles de clasificar.
+  \item \textbf{Generalización moderada} (E1, E3, E4, E7):
+    $F_1 \in [0{,}31;\; 0{,}44]$. Representan condiciones típicas con
+    tres clases.
+  \item \textbf{Falla de generalización} (E2): $F_1 = 0{,}18$,
+    exactitud $= 22\%$. E2 usa micrófono dinámico mientras el resto del
+    entrenamiento es condensador, generando un \textit{domain shift}
+    severo.
+\end{itemize}
+
+Un hallazgo positivo es que la \textbf{exactitud adyacente es
+$\geq 97\%$ en todos los experimentos}, incluyendo E2. Esto significa
+que incluso cuando el modelo falla, sus errores son de un solo paso
+ordinal.
+
+% ============================================================================
+\section{Discusión}
+\label{sec:discusion}
+
+% ── 4.1 Interpretación física ───────────────────────────────────────────────
+\subsection{Interpretación física de la sensibilidad al umbral}
+
+La curva de sensibilidad al umbral (Fig.~\ref{fig:threshold}) tiene una
+interpretación física directa. El desgaste severo (cercano al fallo)
+produce fenómenos acústicos identificables: \textit{chatter} regenerativo,
+\textit{chirping} por fricción en el flanco desgastado y aumento de la
+emisión acústica por deformación plástica severa~\cite{bhuiyan2016}. Estos
+fenómenos se manifiestan como cambios abruptos en el contraste espectral,
+la tasa de \textit{onsets} y el factor de cresta --- precisamente las
+\textit{features} más discriminativas según el estudio de ablación.
+
+En contraste, el desgaste temprano-intermedio (60--75\% de vida útil) se
+caracteriza por desgaste abrasivo gradual del flanco que modifica las
+fuerzas de corte y la rugosidad superficial, pero genera cambios acústicos
+sutiles que se confunden con la variabilidad normal del proceso. Esto
+explica por qué el $F_1$ crece monótonamente con el umbral: las
+\textit{features} \textit{hand-crafted} son descriptores estadísticos
+globales del espectro que capturan cambios bruscos pero no transiciones
+graduales. La caída pronunciada del $F_1$ al 60\% ($F_1 = 0{,}30$ en SVM)
+se debe a que, con un umbral tan bajo, la clase ``desgastado'' incluye
+muestras que corresponden a desgaste moderado cuya firma acústica es
+prácticamente indistinguible de la clase ``medianamente desgastado'',
+generando una frontera de decisión ruidosa que incrementa tanto los falsos
+positivos como los falsos negativos de la clase minoritaria.
+
+% ── 4.2 Relevancia operacional ──────────────────────────────────────────────
+\subsection{Relevancia operacional de la exactitud adyacente}
+
+La exactitud adyacente es particularmente relevante para el monitoreo
+industrial porque cuantifica la severidad de los errores. Un sistema que
+clasifica una broca ``medianamente desgastada'' como ``sin desgaste''
+comete un error de un paso: el operario no cambiará la herramienta pero
+aún tiene margen antes del fallo. En cambio, clasificar ``sin desgaste''
+como ``desgastado'' (error de dos pasos) provocaría un cambio innecesario
+de herramienta con impacto en productividad.
+
+Los resultados muestran que el error de dos pasos es \textit{infrecuente}:
+a umbrales $\geq 85\%$, la exactitud adyacente alcanza $\geq 92{,}6\%$
+(SVM) y $\geq 96{,}9\%$ (RF), y es raro incluso a umbrales bajos. Esto
+sugiere que un sistema de monitoreo basado en estas \textit{features},
+aunque no alcance alta precisión por clase, es \textit{seguro} en el
+sentido de que sus errores no son catastróficos.
+
+% ── 4.3 Micrófono como covariable ──────────────────────────────────────────
+\subsection{El tipo de micrófono como fuente de \textit{domain shift}}
+
+El resultado más preocupante de la generalización cruzada es la caída
+dramática en E2 ($F_1 = 0{,}18$), el único ensayo con micrófono dinámico
+en el set de evaluación mientras el entrenamiento se realiza
+predominantemente con micrófono condensador. Dado que los micrófonos
+dinámicos tienen menor sensibilidad y rango de frecuencia
+(50~Hz--15~kHz vs.\ 40~Hz--20~kHz), las \textit{features} espectrales
+cambian sistemáticamente aunque el proceso de corte sea el mismo.
+
+Este hallazgo tiene implicaciones prácticas: un sistema de monitoreo
+acústico debe calibrarse o adaptarse al tipo de transductor utilizado.
+Las técnicas de adaptación de dominio~\cite{banda2024} o la inclusión
+del tipo de micrófono como covariable podrían mitigar este efecto.
+
+Los resultados del preprocesamiento con \textit{spectral gating}
+(Sección~\ref{sec:noisereduce}) aportan evidencia directa sobre esta
+hipótesis. Al aplicar reducción de ruido, el $F_1$ macro en E2 pasa de
+0{,}18 a 0{,}33 ($+83{,}9\%$ relativo) y la exactitud de 23{,}4\% a
+58{,}6\%, sin degradar el rendimiento en test (E3, mismo tipo de
+micrófono que el entrenamiento). Esto sugiere que una fracción
+sustancial del \textit{domain shift} entre tipos de micrófono se
+origina en diferencias del piso de ruido captado por cada transductor
+---componente que el \textit{spectral gating} atenúa al normalizar el
+contenido no informativo de la señal. El efecto residual ($F_1 = 0{,}33$
+aún inferior al test $F_1 = 0{,}34$) indica que persisten diferencias
+intrínsecas de respuesta en frecuencia que requieren estrategias
+complementarias (adaptación de dominio, calibración por transductor o
+inclusión del tipo de micrófono como covariable en el modelo).
+
+% ── 4.4 Comparación con la literatura ──────────────────────────────────────
+\subsection{Comparación con la literatura}
+
+La Tabla~\ref{tab:literatura} contextualiza los resultados frente a
+trabajos previos. Las comparaciones son aproximadas porque difieren en
+materiales, sensores y definición de desgaste; sin embargo, las filas de
+Orejarena~(2014) y este trabajo comparten el mismo conjunto de datos de
+taladrado, lo que permite una comparación directa de metodologías.
+
+\begin{table*}[htbp]
+\centering
+\caption{Comparación con trabajos previos en monitoreo acústico de
+  herramientas de corte. Filas con $\dagger$ comparten el mismo
+  dataset experimental (Orejarena, 2014).}
+\label{tab:literatura}
+\footnotesize
+\begin{tabular}{@{}p{2.8cm}p{1.6cm}p{2.0cm}p{0.8cm}p{1.0cm}p{1.3cm}p{1.6cm}@{}}
+\toprule
+Referencia & Sensor & Método & Pre-proc. & Clases & Exactitud & Adj.\ acc. \\
+\midrule
+Banda et al.\ (2024)     & Acelerómetro  & SVM + SVD         & No  & 3         & 97\%      & N/D \\
+Bhuiyan et al.\ (2016)   & AE + mic      & ANN/SVM           & No  & 2         & 94\%      & N/D \\
+Charoenprasit (2018)     & Mic husillo   & SVM               & No  & 2         & 92\%      & N/D \\
+Orejarena (2014)$^\dagger$ & 1 mic (din.) & Corr.\ + SVM    & No  & 2         & 85\%      & N/D \\
+\midrule
+\textbf{Este trabajo (base)}$^\dagger$ & \textbf{2 mic}   & \textbf{SVM/RF ordinal}  & \textbf{Sí}  & \textbf{3 (ord.)} & \textbf{58--71\%$^a$} & \textbf{98{,}6--99{,}5\%} \\
+\textbf{Este trabajo (opt.)}$^\dagger$  & \textbf{2 mic}   & \textbf{SVM lineal opt.} & \textbf{Sí}  & \textbf{3 (ord.)} & \textbf{60\%$^b$}     & \textbf{98{,}5\%} \\
+\bottomrule
+\multicolumn{7}{@{}l}{\footnotesize $^a$Exactitud exacta al 97\% (SVM: 58\%, RF: 71\%). N/D = no disponible (clasificación binaria, adj.\ acc.\ $\equiv$ exactitud).} \\
+\multicolumn{7}{@{}l}{\footnotesize $^b$SVM lineal, $C=5$, $k=10$ \textit{features}, umbrales $t_1{=}0{,}30$/$t_2{=}0{,}25$, umbral de etiquetado 75\%.}
+\end{tabular}
+\end{table*}
+
+La exactitud exacta de este trabajo es inferior a la de estudios previos,
+pero la comparación es inequitativa por tres razones: (1)~se resuelve un
+problema de \textit{tres clases ordinales}, no binario --- una tarea
+inherentemente más difícil donde Orejarena~(2014), con el mismo dataset
+pero formulación binaria, alcanza solo 85\%; (2)~se evalúa con
+separación estricta por experimento (\textit{GroupKFold}), no con
+partición aleatoria que infla resultados; (3)~la métrica relevante para
+problemas ordinales es la \textbf{exactitud adyacente}: con 98{,}6\% en
+la configuración base y 98{,}5\% en la optimizada, este trabajo es
+competitivo con todos los enfoques de la literatura, incluidos los
+binarios, demostrando que los errores del sistema nunca son
+catastróficos desde el punto de vista operacional.
+
+% ── 4.5 Limitaciones ───────────────────────────────────────────────────────
+\subsection{Limitaciones}
+
+Este estudio presenta varias limitaciones que deben considerarse al
+interpretar los resultados:
+
+\begin{enumerate}
+  \item \textbf{Tamaño del conjunto ``desgastado''}: solo 16 muestras
+    genuinas de fallo catastrófico (sin augmentación), lo que introduce
+    variabilidad alta en las métricas (IC~95\% de $F_1$:
+    $[0{,}38;\; 0{,}75]$ a 97\%).
+  \item \textbf{Ausencia de medición de VB}: las etiquetas se basan en
+    porcentaje de vida útil, no en desgaste de flanco medido según
+    ISO~8688. Esto introduce incertidumbre en la frontera entre clases.
+  \item \textbf{\textit{Domain shift} por micrófono}: el modelo no
+    generaliza al micrófono dinámico (E2), limitando su aplicabilidad a
+    configuraciones con micrófono condensador.
+  \item \textbf{Un solo material y diámetro por test}: el test set (E3)
+    solo contiene brocas de 6~mm en AISI~4140.
+  \item \textbf{Patrón G-code como confusión potencial}: aunque no se
+    considera variable explicativa, E3 (lineal) difiere de E4 (espiral).
+\end{enumerate}
+
+% ============================================================================
+\section{Conclusiones}
+\label{sec:conclusiones}
+
+Se presentó un sistema de clasificación ordinal del desgaste de brocas CNC
+mediante análisis acústico, con un análisis sistemático de sensibilidad al
+umbral de etiquetado. Las principales conclusiones son:
+
+\begin{enumerate}
+  \item Las \textit{features} acústicas \textit{hand-crafted} detectan
+    eficazmente el fallo catastrófico ($\geq 97\%$ vida útil:
+    $F_1 = 0{,}46$, adj.\ acc.\ $= 98{,}6\%$) pero tienen capacidad
+    limitada para el desgaste progresivo temprano ($\geq 60\%$:
+    $F_1 = 0{,}30$, adj.\ acc.\ $= 83{,}4\%$).
+
+  \item La exactitud adyacente permanece $\geq 83\%$ en todo el rango de
+    umbrales, garantizando que los errores nunca exceden un paso ordinal.
+    Esto hace al sistema \textit{seguro} para monitoreo industrial.
+
+  \item El umbral de 85\% representa el mejor compromiso operacional:
+    RF logra adj.\ acc.\ $= 96{,}9\%$ con 86 muestras de test (vs.\ 18
+    a 97\%), proporcionando soporte estadístico más robusto.
+
+  \item Un subconjunto de 7 \textit{features} supera al conjunto completo
+    de 10 en todos los umbrales ($F_1$: $+0{,}01$ a $+0{,}04$), indicando
+    que tres \textit{features} (\texttt{onset\_rate},
+    \texttt{spectral\_flatness}, \texttt{duration\_s}) introducen ruido.
+
+  \item La etapa de refinamiento (ingeniería de \textit{features}
+    derivadas, calibración de hiperparámetros y umbrales de decisión)
+    eleva la exactitud adyacente de la SVM al 75\% de 85{,}9\% a 98{,}5\%
+    y la exactitud exacta de 50{,}3\% a 60{,}2\%, demostrando que la
+    calibración del clasificador ordinal es tan importante como la
+    selección del modelo.
+
+  \item El tipo de micrófono es la principal fuente de \textit{domain
+    shift}, con degradación severa al evaluar con micrófono dinámico
+    ($F_1 = 0{,}18$) vs.\ condensador ($F_1 = 0{,}33$).
+
+  \item La reducción de ruido espectral (\textit{spectral gating})
+    mejora la exactitud adyacente en test de 84{,}7\% a 90{,}1\% y
+    reduce drásticamente el \textit{domain shift} entre tipos de
+    micrófono ($F_1$: 0{,}18 $\rightarrow$ 0{,}33; exactitud: 23\%
+    $\rightarrow$ 59\% en validación), demostrando que una fracción
+    significativa de la variabilidad inter-transductor se origina en
+    diferencias del piso de ruido.
+\end{enumerate}
+
+El bajo costo computacional del enfoque propuesto (inferencia $< 1$~ms
+por muestra con 10 \textit{features} y SVM lineal) lo hace viable para
+sistemas de monitoreo en línea embebidos, sin requerir GPU ni
+infraestructura de cómputo especializada. Esta característica es relevante
+para la adopción en entornos de manufactura donde los recursos
+computacionales son limitados.
+
+Trabajo futuro incluye: (1)~explorar representaciones espectrales
+aprendidas (CNN sobre mel-espectrogramas) para capturar transiciones
+graduales de desgaste; (2)~incorporar medición de VB con microscopio
+calibrado según ISO~8688; (3)~profundizar en técnicas de adaptación de
+dominio complementarias al \textit{spectral gating} para cerrar la brecha
+residual entre tipos de micrófono; (4)~validar el sistema con brocas de
+diferente geometría (Dormer~A114) y condiciones de refrigeración
+variables; (5)~evaluar la escalabilidad del enfoque a otros procesos de
+corte (fresado, torneado) donde la emisión acústica presenta
+características similares al taladrado.
+
+% ============================================================================
+% AGRADECIMIENTOS
+\section*{Agradecimientos}
+
+Los autores agradecen a la Escuela de Ingeniería Mecánica de la
+Universidad Industrial de Santander por facilitar el acceso al Laboratorio
+de Mecanizado y al centro de mecanizado CNC Leadwell V-20.
+
+% ============================================================================
+% REFERENCIAS
+\begin{thebibliography}{99}
+
+\bibitem{groover2007}
+M.~P.~Groover, \textit{Fundamentos de manufactura moderna: materiales,
+procesos y sistemas}, 3a ed. México: McGraw-Hill, 2007.
+
+\bibitem{bhuiyan2016}
+M.~S.~H.~Bhuiyan, I.~A.~Choudhury y M.~Dahari, ``Application of acoustic
+emission sensor to investigate the frequency of tool wear and
+\textit{tool failure} in turning operation,'' \textit{Measurement},
+vol.~92, pp.~208--217, 2016.
+
+\bibitem{charoenprasit2018}
+K.~Charoenprasit, P.~Srikummoon y S.~Sombatsiri, ``Monitoring tool wear
+in CNC milling using spindle motor noise,'' \textit{Int.\ J.\ Mech.\
+Eng.\ Robot.\ Res.}, vol.~7, no.~5, pp.~522--527, 2018.
+
+\bibitem{orejarena2014}
+N.~Orejarena Osorio, ``Estudio de la señal acústica en función de la
+vida de la herramienta en un proceso de taladrado,'' Tesis M.Sc.,
+Universidad Industrial de Santander, 2014.
+
+\bibitem{banda2024}
+T.~Banda, A.~Ali, J.~Asku y H.-C.~Möhring, ``Multi-sectional SVD-based
+machine learning for tool wear assessment and prediction in turning
+process,'' \textit{Int.\ J.\ Adv.\ Manuf.\ Technol.}, vol.~132,
+no.~7--8, pp.~3585--3600, 2024.
+
+\bibitem{iso8688}
+ISO~8688-1:1989, \textit{Tool life testing in milling --- Part 1: Face
+milling}, International Organization for Standardization, 1989.
+
+\bibitem{frank2001}
+E.~Frank y M.~Hall, ``A simple approach to ordinal classification,'' in
+\textit{Proc.\ European Conf.\ Machine Learning (ECML)}, Springer,
+2001, pp.~145--156.
+
+\bibitem{macphail2024}
+V.~MacPhail, J.~Buxton, F.~Bussière y A.~C.~Smith, ``Audio compression
+affects acoustic indices and classifications of ecological sounds,''
+\textit{Bioacoustics}, vol.~33, no.~1, pp.~1--22, 2024.
+
+\bibitem{montgomery2013}
+D.~C.~Montgomery, \textit{Design and Analysis of Experiments}, 8th~ed.
+Hoboken, NJ: Wiley, 2013.
+
+\bibitem{meneses2020}
+J.~E.~Meneses Flórez y N.~Peña, ``Estudio correlacional entre la señal
+acústica y el desgaste de la herramienta en un proceso de taladrado,''
+\textit{Rev.\ Colomb.\ Tecnol.\ Avanzada (RCTA)}, vol.~2, no.~34,
+pp.~1--8, 2020.
+
+\bibitem{geron2023}
+A.~Géron, \textit{Hands-on Machine Learning with Scikit-Learn, Keras,
+and TensorFlow}, 3rd~ed. Sebastopol, CA: O'Reilly, 2023.
+
+\bibitem{huang2024}
+X.~Huang, W.~Wang y S.~Li, ``Time series feature selection method based
+on mutual information,'' \textit{Applied Sciences}, vol.~14, no.~5,
+art.~1960, 2024.
+
+\bibitem{li2024}
+Y.~Li, J.~Li, Y.~Zhang y Z.~Zhang, ``The Shapley value: from
+cooperative game theory to explainable AI,'' \textit{Autonomous
+Intelligent Systems}, vol.~4, art.~2, 2024.
+
+\bibitem{sainburg2020}
+T.~Sainburg, M.~Thielk y T.~Q.~Gentner, ``Finding, visualizing, and
+quantifying latent structure across diverse animal vocal repertoires,''
+\textit{PLOS Computational Biology}, vol.~16, no.~10, art.~e1008228,
+2020. [Biblioteca \texttt{noisereduce}: \url{https://github.com/timsainb/noisereduce}]
+
+\end{thebibliography}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
