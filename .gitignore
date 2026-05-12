@@ -84,3 +84,34 @@ article1/AVANZADA/
 # --- Subcarpetas de informe muy pesadas ---
 informe_proyecto/figures_old/
 informe_proyecto/annotation_images/
+
+# --- Fuera del proyecto SVM (no relevante al repo academico) ---
+# Hoja de vida y portfolio personal
+cv/
+
+# Recordatorios por correo del autor (campana interna, no pertenece al repo)
+informe_proyecto/drip_definitions/
+
+# Claude Code: instrucciones de IA, agentes locales, scaffold de sesiones autonomas
+.claude/
+**/CLAUDE.md
+BOTS_BRIEF.md
+chain_*.txt
+_arl_image1.png
+
+# Sub-proyectos paralelos no relacionados con SVM
+wpp_bot/
+cv_quality_builder/
+cv_quality_builder_v2/
+cv_review_iterator/
+business_model_research/
+defensa/
+defensa_pptx_quality/
+dopamina_app/
+flashcards_app/
+focusreps_mobile/
+audio_snacks/
+guion_defensa_v37/
+art1_word_quality/
+art2_word_quality/
+portfolio_web/

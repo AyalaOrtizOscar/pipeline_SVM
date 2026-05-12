@@ -23,10 +23,8 @@ Si cita una version concreta congelada para revision por jurado, use el tag `v1.
 | `scripts/` | Scripts Python del pipeline (extraccion de 26 features acusticas, entrenamiento SVM Frank & Hall, SHAP, validacion LOEO, generacion de figuras) |
 | `manifests/` | CSV de splits train/val/test, manifestos por experimento (E1-E7) |
 | `article1/` | Articulo RCTA (LaTeX + PDF) — version SVM publicable |
-| `cv/` | Sistema modular de CV academico (3 perfiles) |
 | `informe_proyecto/` | Informe completo de proyecto de grado (LaTeX + bibliografia + figuras + PDF de 141 paginas) |
 | `informe_proyecto/scripts/` | Scripts de generacion de diagramas y edicion del informe |
-| `informe_proyecto/drip_definitions/` | Campana de correos diarios para refuerzo previo a sustentacion |
 
 ## NO incluido (por tamano o privacidad)
 
